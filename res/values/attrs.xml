@@ -1,0 +1,7 @@
+<resources>
+    <declare-styleable name="GlyphView">
+        <attr name="viewportWidth" format="float" />
+        <attr name="viewportHeight" format="float" />
+        <attr name="glyphPathData" format="string" />
+    </declare-styleable>
+</resources>

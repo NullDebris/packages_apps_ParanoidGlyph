@@ -22,6 +22,10 @@
     <integer-array name="glyph_settings_animations_supported_pattern_lengths" translatable="false">
     </integer-array>
 
+    <integer-array name="glyph_settings_animations_slug_led_count" translatable="false">
+
+    </integer-array>
+
     <!-- Battery Animations -->
     <integer name="glyph_settings_battery_levels_num" translatable="false"></integer>
 

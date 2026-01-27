@@ -26,21 +26,28 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
 import androidx.preference.Preference;
 import androidx.preference.PreferenceViewHolder;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import co.aospa.glyph.R;
 import co.aospa.glyph.Constants.Constants;
 import co.aospa.glyph.Utils.ResourceUtils;
+import co.aospa.glyph.View.GlyphLEDView;
 
-public class GlyphAnimationPreference extends Preference {
+public class ComplexGlyphAnimationPreference extends Preference {
 
-    private final String TAG = "GlyphAnimationPreference";
+    private final String TAG = "ComplexGlyphAnimationPreference";
     private final boolean DEBUG = true;
 
     private Activity mActivity;
@@ -51,27 +58,30 @@ public class GlyphAnimationPreference extends Preference {
     private boolean animationReversed = false;
     private int animationTimeBetween = 0;
     private String[] animationSlugs;
+    private int zoneCount;
+    private int[] zoneLedCounts;
     private ImageView[] animationImgs;
+    List<GlyphLEDView> glyphLEDViews;
 
     private View mRootView;
     private final View.OnClickListener mClickListener = v -> performClick(v);
 
-    public GlyphAnimationPreference(Context context) {
+    public ComplexGlyphAnimationPreference(Context context) {
         super(context);
         setActivity(context);
         setLayout(R.layout.glyph_settings_preview);
     }
-    public GlyphAnimationPreference(Context context, AttributeSet attrs) {
+    public ComplexGlyphAnimationPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
         setActivity(context);
         setLayout(R.layout.glyph_settings_preview);
     }
-    public GlyphAnimationPreference(Context context, AttributeSet attrs, int defStyleAttr) {
+    public ComplexGlyphAnimationPreference(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         setActivity(context);
         setLayout(R.layout.glyph_settings_preview);
     }
-    public GlyphAnimationPreference(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public ComplexGlyphAnimationPreference(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr);
         setActivity(context);
         setLayout(defStyleRes);
@@ -109,6 +119,21 @@ public class GlyphAnimationPreference extends Preference {
             parent.removeView(mRootView);
         }
         layout.addView(mRootView);
+
+        zoneCount = ResourceUtils.getStringArray("glyph_settings_animations_slugs").length;
+        zoneLedCounts = ResourceUtils.getIntArray("glyph_settings_animations_slug_led_count");
+        String[] zonePaths = ResourceUtils.getStringArray("zone_paths");
+
+
+        glyphLEDViews = new ArrayList<>();
+        for (int i = 0; i < zoneCount; i++) {
+            GlyphLEDView gv = new GlyphLEDView(getContext());
+            gv.setPathData(zonePaths[i]);
+            gv.setLEDLayout(zoneLedCounts[i]);
+            glyphLEDViews.add(gv);
+            layout.addView(gv);
+        }
+
     }
 
     @Override
@@ -127,11 +152,6 @@ public class GlyphAnimationPreference extends Preference {
 
     private void startAnimation() {
         animationSlugs = ResourceUtils.getStringArray("glyph_settings_animations_slugs");
-        animationImgs = new ImageView[animationSlugs.length];
-        for (int i = 0; i < animationSlugs.length; i++) {
-            animationImgs[i] = (ImageView) mRootView.findViewById(
-                ResourceUtils.getIdentifier("preview_device_" + animationSlugs[i], "id"));
-        }
         animationThread.start();
     }
 
@@ -183,6 +203,7 @@ public class GlyphAnimationPreference extends Preference {
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(
                         ResourceUtils.getAnimation(animationName)))) {
                     Iterator<String> it = ResourceUtils.iterateCsvLines(reader, animationReversed);
+                    List<int[]> zoneFrames = new ArrayList<>();
                     while (it.hasNext()) {
                         String[] split = it.next().split(",");
                         if (Constants.getDevice().equals("phone1") && split.length == 5) { // Phone (1) pattern on Phone (1)
@@ -193,37 +214,50 @@ public class GlyphAnimationPreference extends Preference {
                             });
                         } else if (Constants.getDevice().equals("phone2") && split.length == 5) { // Phone (1) pattern on Phone (2)
                             mActivity.runOnUiThread(() -> {
-                                    setGlyphsDrawable(animationImgs[0], Integer.parseInt(split[0]));
-                                    setGlyphsDrawable(animationImgs[1], Integer.parseInt(split[0]));
-                                    setGlyphsDrawable(animationImgs[2], Integer.parseInt(split[1]));
-                                    setGlyphsDrawable(animationImgs[3], Integer.parseInt(split[2]));
-                                    setGlyphsDrawable(animationImgs[4], Integer.parseInt(split[2]));
-                                    setGlyphsDrawable(animationImgs[5], Integer.parseInt(split[2]));
-                                    setGlyphsDrawable(animationImgs[6], Integer.parseInt(split[2]));
-                                    setGlyphsDrawable(animationImgs[7], Integer.parseInt(split[2]));
-                                    setGlyphsDrawable(animationImgs[8], Integer.parseInt(split[2]));
-                                    setGlyphsDrawable(animationImgs[9], Integer.parseInt(split[3]));
-                                    setGlyphsDrawable(animationImgs[10], Integer.parseInt(split[4]));
+                                setGlyphsDrawable(animationImgs[0], Integer.parseInt(split[0]));
+                                setGlyphsDrawable(animationImgs[1], Integer.parseInt(split[0]));
+                                setGlyphsDrawable(animationImgs[2], Integer.parseInt(split[1]));
+                                setGlyphsDrawable(animationImgs[3], Integer.parseInt(split[2]));
+                                setGlyphsDrawable(animationImgs[4], Integer.parseInt(split[2]));
+                                setGlyphsDrawable(animationImgs[5], Integer.parseInt(split[2]));
+                                setGlyphsDrawable(animationImgs[6], Integer.parseInt(split[2]));
+                                setGlyphsDrawable(animationImgs[7], Integer.parseInt(split[2]));
+                                setGlyphsDrawable(animationImgs[8], Integer.parseInt(split[2]));
+                                setGlyphsDrawable(animationImgs[9], Integer.parseInt(split[3]));
+                                setGlyphsDrawable(animationImgs[10], Integer.parseInt(split[4]));
                             });
                         } else if (Constants.getDevice().equals("phone2") && split.length == 33) { // Phone (2) pattern on Phone (2)
                             mActivity.runOnUiThread(() -> {
-                                    setGlyphsDrawable(animationImgs[0], Integer.parseInt(split[0]));
-                                    setGlyphsDrawable(animationImgs[1], Integer.parseInt(split[1]));
-                                    setGlyphsDrawable(animationImgs[2], Integer.parseInt(split[2]));
-                                    setGlyphsDrawable(animationImgs[3], Integer.parseInt(split[3]));
-                                    setGlyphsDrawable(animationImgs[4], Integer.parseInt(split[19]));
-                                    setGlyphsDrawable(animationImgs[5], Integer.parseInt(split[20]));
-                                    setGlyphsDrawable(animationImgs[6], Integer.parseInt(split[21]));
-                                    setGlyphsDrawable(animationImgs[7], Integer.parseInt(split[22]));
-                                    setGlyphsDrawable(animationImgs[8], Integer.parseInt(split[23]));
-                                    setGlyphsDrawable(animationImgs[9], Integer.parseInt(split[25]));
-                                    setGlyphsDrawable(animationImgs[10], Integer.parseInt(split[24]));
+                                setGlyphsDrawable(animationImgs[0], Integer.parseInt(split[0]));
+                                setGlyphsDrawable(animationImgs[1], Integer.parseInt(split[1]));
+                                setGlyphsDrawable(animationImgs[2], Integer.parseInt(split[2]));
+                                setGlyphsDrawable(animationImgs[3], Integer.parseInt(split[3]));
+                                setGlyphsDrawable(animationImgs[4], Integer.parseInt(split[19]));
+                                setGlyphsDrawable(animationImgs[5], Integer.parseInt(split[20]));
+                                setGlyphsDrawable(animationImgs[6], Integer.parseInt(split[21]));
+                                setGlyphsDrawable(animationImgs[7], Integer.parseInt(split[22]));
+                                setGlyphsDrawable(animationImgs[8], Integer.parseInt(split[23]));
+                                setGlyphsDrawable(animationImgs[9], Integer.parseInt(split[25]));
+                                setGlyphsDrawable(animationImgs[10], Integer.parseInt(split[24]));
                             });
                         } else if (Constants.getDevice().equals("phone3a") && split.length == 36) { // Phone (3a) / (3a) Pro pattern on Phone (3a) / (3a) Pro
                             mActivity.runOnUiThread(() -> {
-                                    setGlyphsDrawable(animationImgs[0], Integer.parseInt(split[0]));
-                                    setGlyphsDrawable(animationImgs[1], Integer.parseInt(split[20]));
-                                    setGlyphsDrawable(animationImgs[2], Integer.parseInt(split[31]));
+//                                setGlyphsDrawable(animationImgs[0], Integer.parseInt(split[0]));
+//                                setGlyphsDrawable(animationImgs[1], Integer.parseInt(split[20]));
+//                                setGlyphsDrawable(animationImgs[2], Integer.parseInt(split[31]));
+                                int start = 0;
+                                zoneFrames.clear();
+                                for (int i = 0; i < zoneCount; i++) {
+                                    int count = zoneLedCounts[i];
+                                    int[] zoneFrame = new int[count];
+                                    int end = start + count;
+                                    for (int k = start; k < end; k++) {
+                                        zoneFrame[k - start] = Integer.parseInt(split[k].trim());
+                                    }
+                                    start = end;
+                                    zoneFrames.add(zoneFrame);
+                                    glyphLEDViews.get(i).updateLEDs(zoneFrames.get(i));
+                                }
                             });
                         } else {
                             if (DEBUG) Log.d(TAG, "Animation line length mismatch | name: " + animationName + " | line: " + it.next());
@@ -238,15 +272,16 @@ public class GlyphAnimationPreference extends Preference {
                     if (animationPaused) {
                         if (DEBUG) Log.d(TAG, "Pause displaying animation | name: " + animationName);
                         mActivity.runOnUiThread(() -> {
-                            for (int i = 0; i < animationSlugs.length; i++) {
-                                setGlyphsDrawable(animationImgs[i], 0);
+                            for (int i = 0; i < zoneCount; i++) {
+                                // setGlyphsDrawable(animationImgs[i], 0);
+                                glyphLEDViews.get(i).setAllLEDs(0);
                             }
                         });
                     }
                 }
             }
         }
-        
+
         private void setGlyphsDrawable(ImageView imageView, int brightness) {
             if (brightness <= 0) {
                 imageView.setAlpha(0.3f);
@@ -254,6 +289,10 @@ public class GlyphAnimationPreference extends Preference {
                 float brightnessFactor = (float) (0.4 + 0.6 * (brightness / (double) Constants.getMaxBrightness()));
                 imageView.setAlpha(brightnessFactor);
             }
+        }
+
+        private void setGlyphView(int index, int brightness) {
+
         }
     };
 }

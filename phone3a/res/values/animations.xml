@@ -22,6 +22,14 @@
         <item>right</item>
         <item>left_2</item>
     </string-array>
+
+    <!-- Match count to amount of LEDs in slug -->
+    <integer-array name="glyph_settings_animations_slug_led_count" translatable="false">
+        <item>20</item>
+        <item>11</item>
+        <item>5</item>
+    </integer-array>
+
     <integer-array name="glyph_settings_animations_supported_pattern_lengths" translatable="false">
         <item>36</item>
     </integer-array>

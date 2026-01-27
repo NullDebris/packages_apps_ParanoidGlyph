@@ -32,10 +32,10 @@ import com.android.settingslib.widget.SettingsBasePreferenceFragment;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 
+import co.aospa.glyph.Preference.ComplexGlyphAnimationPreference;
 import co.aospa.glyph.R;
 import co.aospa.glyph.Constants.Constants;
 import co.aospa.glyph.Manager.SettingsManager;
-import co.aospa.glyph.Preference.GlyphAnimationPreference;
 import co.aospa.glyph.Utils.ResourceUtils;
 import co.aospa.glyph.Utils.ServiceUtils;
 
@@ -49,7 +49,7 @@ public class CallSettingsFragment extends SettingsBasePreferenceFragment impleme
     private ListPreference mListPreference;
     private SwitchPreferenceCompat mReverseCallAnimationSwitch;
 
-    private GlyphAnimationPreference mGlyphAnimationPreference;
+    private ComplexGlyphAnimationPreference mComplexGlyphAnimationPreference;
 
     private Handler mHandler = new Handler();
 
@@ -75,13 +75,13 @@ public class CallSettingsFragment extends SettingsBasePreferenceFragment impleme
         mReverseCallAnimationSwitch = findPreference(Constants.GLYPH_CALL_REVERSE_ANIMATION_ENABLE);
         mReverseCallAnimationSwitch.setOnPreferenceChangeListener(this);
 
-        mGlyphAnimationPreference = (GlyphAnimationPreference) findPreference(Constants.GLYPH_CALL_SUB_PREVIEW);
+        mComplexGlyphAnimationPreference = (ComplexGlyphAnimationPreference) findPreference(Constants.GLYPH_CALL_SUB_PREVIEW);
     }
 
     @Override
     public void onViewCreated (View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mGlyphAnimationPreference.updateAnimation(SettingsManager.isGlyphCallEnabled(),
+        mComplexGlyphAnimationPreference.updateAnimation(SettingsManager.isGlyphCallEnabled(),
                 SettingsManager.getGlyphCallAnimation(), mReverseCallAnimationSwitch.isChecked());
     }
 
@@ -90,12 +90,12 @@ public class CallSettingsFragment extends SettingsBasePreferenceFragment impleme
         final String preferenceKey = preference.getKey();
 
         if (preferenceKey.equals(Constants.GLYPH_CALL_SUB_ANIMATIONS)) {
-            mGlyphAnimationPreference.updateAnimation(SettingsManager.isGlyphCallEnabled(),
+            mComplexGlyphAnimationPreference.updateAnimation(SettingsManager.isGlyphCallEnabled(),
                 newValue.toString());
         }
 
         if (preferenceKey.equals(Constants.GLYPH_CALL_REVERSE_ANIMATION_ENABLE)) {
-            mGlyphAnimationPreference.updateAnimation(SettingsManager.isGlyphCallEnabled(), 1500, (Boolean) newValue);
+            mComplexGlyphAnimationPreference.updateAnimation(SettingsManager.isGlyphCallEnabled(), 1500, (Boolean) newValue);
         }
 
         //mHandler.post(() -> ServiceUtils.checkGlyphService());
@@ -107,7 +107,7 @@ public class CallSettingsFragment extends SettingsBasePreferenceFragment impleme
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         SettingsManager.setGlyphCallEnabled(isChecked);
         ServiceUtils.checkGlyphService();
-        mGlyphAnimationPreference.updateAnimation(isChecked,
+        mComplexGlyphAnimationPreference.updateAnimation(isChecked,
                 SettingsManager.getGlyphCallAnimation());
     }
 

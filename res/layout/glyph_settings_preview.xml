@@ -16,7 +16,7 @@
         android:paddingBottom="25dp"
         android:background="@drawable/bg_protection_background">
 
-        <include layout="@layout/glyph_settings_preview_device" />
+        <include layout="@layout/glyph_settings_preview_device_advanced" />
 
     </LinearLayout>
 

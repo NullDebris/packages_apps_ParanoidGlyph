@@ -34,4 +34,6 @@
     <integer-array name="glyph_settings_notifs_essential_led_array" translatable="false">
     </integer-array>
 
+    <string-array name="zone_paths"></string-array>
+
 </resources>
