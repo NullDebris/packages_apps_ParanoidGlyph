@@ -71,6 +71,12 @@
         android:key="glyph_settings_call"
         android:title="@string/glyph_settings_call_title" />
 
+        <SwitchPreferenceCompat
+            android:key="glyph_settings_call_sim_merge_toggle"
+            android:defaultValue="true"
+            android:title="@string/glyph_settings_call_sim_merge_toggle_title"
+            android:summary="@string/glyph_settings_call_sim_merge_toggle_summary" />
+
         <com.android.settingslib.PrimarySwitchPreference
             android:key="glyph_settings_call_toggle"
             android:defaultValue="true"
@@ -81,19 +87,47 @@
                  android:targetClass="co.aospa.glyph.Settings.CallSettingsActivity"/>
         </com.android.settingslib.PrimarySwitchPreference>
 
-    <PreferenceCategory
-        android:key="glyph_settings_notifs"
-        android:title="@string/glyph_settings_notifs_title" />
+        <com.android.settingslib.PrimarySwitchPreference
+            android:key="glyph_settings_call_toggle_sim1"
+            android:defaultValue="true"
+            android:title="@string/glyph_settings_call_toggle_title_sim1"
+            android:summary="@string/glyph_settings_call_toggle_summary">
+
+            <intent
+                android:action="android.intent.action.MAIN"
+                android:targetPackage="co.aospa.glyph"
+                android:targetClass="co.aospa.glyph.Settings.CallSettingsSim1Activity">
+            </intent>
+
+        </com.android.settingslib.PrimarySwitchPreference>
 
         <com.android.settingslib.PrimarySwitchPreference
-            android:key="glyph_settings_notifs_toggle"
+            android:key="glyph_settings_call_toggle_sim2"
             android:defaultValue="true"
-            android:title="@string/glyph_settings_notifs_toggle_title"
-            android:summary="@string/glyph_settings_notifs_toggle_summary" >
-            <intent android:action="android.intent.action.MAIN"
-                 android:targetPackage="co.aospa.glyph"
-                 android:targetClass="co.aospa.glyph.Settings.NotifsSettingsActivity"/>
+            android:title="@string/glyph_settings_call_toggle_title_sim2"
+            android:summary="@string/glyph_settings_call_toggle_summary">
+
+            <intent
+                android:action="android.intent.action.MAIN"
+                android:targetPackage="co.aospa.glyph"
+                android:targetClass="co.aospa.glyph.Settings.CallSettingsSim2Activity">
+            </intent>
+
         </com.android.settingslib.PrimarySwitchPreference>
+
+        <PreferenceCategory
+            android:key="glyph_settings_notifs"
+            android:title="@string/glyph_settings_notifs_title" />
+
+            <com.android.settingslib.PrimarySwitchPreference
+                android:key="glyph_settings_notifs_toggle"
+                android:defaultValue="true"
+                android:title="@string/glyph_settings_notifs_toggle_title"
+                android:summary="@string/glyph_settings_notifs_toggle_summary" >
+                <intent android:action="android.intent.action.MAIN"
+                     android:targetPackage="co.aospa.glyph"
+                     android:targetClass="co.aospa.glyph.Settings.NotifsSettingsActivity"/>
+            </com.android.settingslib.PrimarySwitchPreference>
 
     <PreferenceCategory
         android:key="glyph_settings_charging"

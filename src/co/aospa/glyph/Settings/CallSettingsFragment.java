@@ -17,8 +17,12 @@
 package co.aospa.glyph.Settings;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceGroup;
+import android.telecom.Call;
+import android.util.Log;
 import android.view.View;
 
 import androidx.preference.ListPreference;
@@ -32,6 +36,8 @@ import com.android.settingslib.widget.MainSwitchPreference;
 import com.android.settingslib.widget.SettingsBasePreferenceFragment;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+
+import java.util.Set;
 
 import co.aospa.glyph.Manager.AnimationManager;
 import co.aospa.glyph.R;
@@ -55,21 +61,41 @@ public class CallSettingsFragment extends SettingsBasePreferenceFragment impleme
     private GlyphAnimationPreference mGlyphAnimationPreference;
 
     private Handler mHandler = new Handler();
+    private String mSubId = "0";
+    private volatile String prefSuffix = "";
 
     private Thread livePreviewThread;
 
+
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-        addPreferencesFromResource(R.xml.glyph_call_settings);;
+
+        Bundle args = getArguments();
+        mSubId = args != null ? args.getString("subId") : "0";
+        int xmlRes;
+
+        switch (mSubId) {
+            case "1" -> xmlRes = R.xml.glyph_call_settings_sim1;
+            case "2" -> xmlRes = R.xml.glyph_call_settings_sim2;
+            case null,default -> xmlRes = R.xml.glyph_call_settings;
+        }
+
+        addPreferencesFromResource(xmlRes);
 
         mScreen = this.getPreferenceScreen();
-        getActivity().setTitle(R.string.glyph_settings_call_toggle_title);
+        if (!mSubId.equals("0")) {
+            getActivity().setTitle(ResourceUtils.getString("glyph_settings_call_toggle_title") + " (SIM " + mSubId + ")" );
+            prefSuffix = "_sim" + mSubId;
+            //  namespaceKeys(mScreen, prefSuffix);
+        } else {
+            getActivity().setTitle(R.string.glyph_settings_call_toggle_title);
+        }
 
-        mSwitchBar = (MainSwitchPreference) findPreference(Constants.GLYPH_CALL_SUB_ENABLE);
+        mSwitchBar = (MainSwitchPreference) findPreference(Constants.GLYPH_CALL_SUB_ENABLE + prefSuffix);
         mSwitchBar.addOnSwitchChangeListener(this);
-        mSwitchBar.setChecked(SettingsManager.isGlyphCallEnabled());
+        mSwitchBar.setChecked(SettingsManager.isGlyphCallEnabled(Integer.parseInt(mSubId)));
 
-        mListPreference = (ListPreference) findPreference(Constants.GLYPH_CALL_SUB_ANIMATIONS);
+        mListPreference = (ListPreference) findPreference(Constants.GLYPH_CALL_SUB_ANIMATIONS + prefSuffix);
         mListPreference.setOnPreferenceChangeListener(this);
         mListPreference.setEntries(ResourceUtils.getCallAnimations());
         mListPreference.setEntryValues(ResourceUtils.getCallAnimations());
@@ -77,9 +103,9 @@ public class CallSettingsFragment extends SettingsBasePreferenceFragment impleme
             mListPreference.setValue(ResourceUtils.getString("glyph_settings_call_animations_default"));
         }
 
-        mLivePreviewPreference = (Preference) findPreference(Constants.GLYPH_CALL_SUB_LIVE_PREVIEW);
+        mLivePreviewPreference = (Preference) findPreference(Constants.GLYPH_CALL_SUB_LIVE_PREVIEW + prefSuffix);
 
-        mReverseCallAnimationSwitch = findPreference(Constants.GLYPH_CALL_REVERSE_ANIMATION_ENABLE);
+        mReverseCallAnimationSwitch = findPreference(Constants.GLYPH_CALL_REVERSE_ANIMATION_ENABLE + prefSuffix);
         mReverseCallAnimationSwitch.setOnPreferenceChangeListener(this);
 
         mGlyphAnimationPreference = (GlyphAnimationPreference) findPreference(Constants.GLYPH_CALL_SUB_PREVIEW);
@@ -88,21 +114,22 @@ public class CallSettingsFragment extends SettingsBasePreferenceFragment impleme
     @Override
     public void onViewCreated (View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mGlyphAnimationPreference.updateAnimation(SettingsManager.isGlyphCallEnabled(),
-                SettingsManager.getGlyphCallAnimation(), mReverseCallAnimationSwitch.isChecked());
+        mGlyphAnimationPreference.updateAnimation(SettingsManager.isGlyphCallEnabled(Integer.parseInt(mSubId)),
+                SettingsManager.getGlyphCallAnimation(Integer.parseInt(mSubId)), mReverseCallAnimationSwitch.isChecked());
     }
 
     @Override
     public boolean onPreferenceChange(Preference preference, Object newValue) {
         final String preferenceKey = preference.getKey();
 
-        if (preferenceKey.equals(Constants.GLYPH_CALL_SUB_ANIMATIONS)) {
-            mGlyphAnimationPreference.updateAnimation(SettingsManager.isGlyphCallEnabled(),
+        if (preferenceKey.equals(Constants.GLYPH_CALL_SUB_ANIMATIONS + prefSuffix)) {
+            mGlyphAnimationPreference.updateAnimation(SettingsManager.isGlyphCallEnabled(Integer.parseInt(mSubId)),
                 newValue.toString());
         }
 
-        if (preferenceKey.equals(Constants.GLYPH_CALL_REVERSE_ANIMATION_ENABLE)) {
-            mGlyphAnimationPreference.updateAnimation(SettingsManager.isGlyphCallEnabled(), 1500, (Boolean) newValue);
+        if (preferenceKey.equals(Constants.GLYPH_CALL_REVERSE_ANIMATION_ENABLE + prefSuffix)) {
+            mGlyphAnimationPreference.updateAnimation(SettingsManager.isGlyphCallEnabled(Integer.parseInt(mSubId)),
+                    1500, (Boolean) newValue);
         }
 
         //mHandler.post(() -> ServiceUtils.checkGlyphService());
@@ -112,7 +139,7 @@ public class CallSettingsFragment extends SettingsBasePreferenceFragment impleme
 
     @Override
     public boolean onPreferenceTreeClick(Preference preference) {
-        if (Constants.GLYPH_CALL_SUB_LIVE_PREVIEW.equals(preference.getKey())) {
+        if ((Constants.GLYPH_CALL_SUB_LIVE_PREVIEW + prefSuffix).equals(preference.getKey())) {
             mLivePreviewPreference.setEnabled(false);
             mLivePreviewPreference.setSummary(R.string.glyph_settings_animations_live_preview_summary_playing);
             livePreviewThread = new Thread(() -> {
@@ -125,7 +152,7 @@ public class CallSettingsFragment extends SettingsBasePreferenceFragment impleme
                 }
                 AnimationManager.playCsv(
                         requireContext(),
-                        SettingsManager.getGlyphCallAnimation(),
+                        SettingsManager.getGlyphCallAnimation(Integer.parseInt(mSubId)),
                         false,
                         mReverseCallAnimationSwitch.isChecked()
                 );
@@ -144,7 +171,7 @@ public class CallSettingsFragment extends SettingsBasePreferenceFragment impleme
         SettingsManager.setGlyphCallEnabled(isChecked);
         ServiceUtils.checkGlyphService();
         mGlyphAnimationPreference.updateAnimation(isChecked,
-                SettingsManager.getGlyphCallAnimation());
+                SettingsManager.getGlyphCallAnimation(Integer.parseInt(mSubId)));
     }
 
     @Override
@@ -158,6 +185,20 @@ public class CallSettingsFragment extends SettingsBasePreferenceFragment impleme
         mLivePreviewPreference.setSummary(
                 R.string.glyph_settings_animations_live_preview_summary
         );
+    }
+
+    private void namespaceKeys(PreferenceScreen screen, String suffix) {
+        for (int i = 0; i < screen.getPreferenceCount(); i++) {
+            Preference p = screen.getPreference(i);
+
+            Set<String> exclude = Set.of(Constants.GLYPH_CALL_SUB_PREVIEW);
+            if (exclude.contains(p.getKey())) continue;
+
+            if (p.getKey() != null) {
+                p.setKey(p.getKey() + suffix);
+            }
+
+        }
     }
 
 

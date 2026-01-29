@@ -66,6 +66,9 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
     private SeekBarPreference mBrightnessPreference;
     private PrimarySwitchPreference mNotifsPreference;
     private PrimarySwitchPreference mCallPreference;
+    private SwitchPreferenceCompat mSIMmergePreference;
+    private PrimarySwitchPreference mCallPreferenceSIM1;
+    private PrimarySwitchPreference mCallPreferenceSIM2;
     private SwitchPreferenceCompat mChargingLevelPreference;
     private SwitchPreferenceCompat mChargingPowersharePreference;
     private SwitchPreferenceCompat mVolumeLevelPreference;
@@ -136,11 +139,30 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
         mNotifsPreference.setSwitchEnabled(glyphEnabled);
         mNotifsPreference.setOnPreferenceChangeListener(this);
 
+        mSIMmergePreference = (SwitchPreferenceCompat) findPreference(Constants.GLYPH_CALL_SIM_MERGE_ENABLE);
+        mSIMmergePreference.setOnPreferenceChangeListener(this);
+
         mCallPreference = (PrimarySwitchPreference) findPreference(Constants.GLYPH_CALL_ENABLE);
-        mCallPreference.setChecked(SettingsManager.isGlyphCallEnabled());
+        mCallPreference.setChecked(SettingsManager.isGlyphCallEnabled(0));
         mCallPreference.setEnabled(glyphEnabled);
         mCallPreference.setSwitchEnabled(glyphEnabled);
         mCallPreference.setOnPreferenceChangeListener(this);
+
+        mCallPreferenceSIM1 = (PrimarySwitchPreference) findPreference(Constants.GLYPH_CALL_ENABLE_SIM1);
+        mCallPreferenceSIM1.setChecked(SettingsManager.isGlyphCallEnabled(1));
+        mCallPreferenceSIM1.setEnabled(glyphEnabled);
+        mCallPreferenceSIM1.setSwitchEnabled(glyphEnabled);
+        mCallPreferenceSIM1.setOnPreferenceChangeListener(this);
+
+        mCallPreferenceSIM2 = (PrimarySwitchPreference) findPreference(Constants.GLYPH_CALL_ENABLE_SIM2);
+        mCallPreferenceSIM2.setChecked(SettingsManager.isGlyphCallEnabled(2));
+        mCallPreferenceSIM2.setEnabled(glyphEnabled);
+        mCallPreferenceSIM2.setSwitchEnabled(glyphEnabled);
+        mCallPreferenceSIM2.setOnPreferenceChangeListener(this);
+
+        mCallPreference.setVisible(mSIMmergePreference.isChecked());
+        mCallPreferenceSIM1.setVisible(!mSIMmergePreference.isChecked());
+        mCallPreferenceSIM2.setVisible(!mSIMmergePreference.isChecked());
 
         mChargingLevelPreference = (SwitchPreferenceCompat) findPreference(Constants.GLYPH_CHARGING_LEVEL_ENABLE);
         mChargingLevelPreference.setEnabled(glyphEnabled);
@@ -181,7 +203,7 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
         IntentFilter filter = new IntentFilter("co.aospa.glyph.UPDATE_MAIN_SWITCH");
         requireContext().registerReceiver(mScheduleUpdateReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
 
-        mHandler.post(() -> ServiceUtils.checkGlyphService());
+        mHandler.post(ServiceUtils::checkGlyphService);
     }
 
     @Override
@@ -216,9 +238,7 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
             
             if (enabled) {
                 ServiceUtils.startProgressService();
-                mHandler.postDelayed(() -> {
-                    ServiceUtils.checkGlyphService();
-                }, 250);
+                mHandler.postDelayed(ServiceUtils::checkGlyphService, 250);
             } else {
                 ServiceUtils.checkGlyphService();
             }
@@ -226,9 +246,7 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
         }
 
         if (preferenceKey.equals(Constants.GLYPH_PROGRESS_MUSIC_ENABLE)) {
-            mHandler.postDelayed(() -> {
-                ServiceUtils.checkGlyphService();
-            }, 100);
+            mHandler.postDelayed(ServiceUtils::checkGlyphService, 100);
             return true;
         }
 
@@ -236,7 +254,14 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
             updateBatterySaver((Boolean) newValue);
         }
 
-        mHandler.post(() -> ServiceUtils.checkGlyphService());
+        if (preferenceKey.equals(Constants.GLYPH_CALL_SIM_MERGE_ENABLE)) {
+            boolean enabled = (boolean) newValue;
+            mCallPreference.setVisible(enabled);
+            mCallPreferenceSIM1.setVisible(!enabled);
+            mCallPreferenceSIM2.setVisible(!enabled);
+        }
+
+        mHandler.post(ServiceUtils::checkGlyphService);
 
         return true;
     }
@@ -289,21 +314,21 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
 
     @Override
     public boolean onPreferenceTreeClick(Preference preference) {
-    if (Constants.GLYPH_NOTIFS_ENABLE.equals(preference.getKey()) 
-    || Constants.GLYPH_PROGRESS_ENABLE.equals(preference.getKey())) {
-            if (!ServiceUtils.isNotificationServiceEnabled()) {
-                new AlertDialog.Builder(requireContext())
-                    .setTitle(R.string.glyph_settings_notifs_permission_dialog_title)
-                    .setMessage(R.string.glyph_settings_notifs_permission_dialog_message)
-                    .setPositiveButton(android.R.string.ok, (dialog, which) -> {
-                        Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
-                        requireContext().startActivity(intent);
-                    })
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show();
-                return true;
+        if (Constants.GLYPH_NOTIFS_ENABLE.equals(preference.getKey())
+        || Constants.GLYPH_PROGRESS_ENABLE.equals(preference.getKey())) {
+                if (!ServiceUtils.isNotificationServiceEnabled()) {
+                    new AlertDialog.Builder(requireContext())
+                        .setTitle(R.string.glyph_settings_notifs_permission_dialog_title)
+                        .setMessage(R.string.glyph_settings_notifs_permission_dialog_message)
+                        .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                            Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
+                            requireContext().startActivity(intent);
+                        })
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .show();
+                    return true;
+                }
             }
-        }
     return super.onPreferenceTreeClick(preference);
     }
 
@@ -376,7 +401,13 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
                 mSwitchBar.setChecked(SettingsManager.isGlyphEnabledIgnoreSchedule());
             }
             if (uri.equals(Settings.Secure.getUriFor(Constants.GLYPH_CALL_ENABLE))) {
-                mCallPreference.setChecked(SettingsManager.isGlyphCallEnabled());
+                mCallPreference.setChecked(SettingsManager.isGlyphCallEnabled(0));
+            }
+            if (uri.equals(Settings.Secure.getUriFor(Constants.GLYPH_CALL_ENABLE_SIM1))) {
+                mCallPreference.setChecked(SettingsManager.isGlyphCallEnabled(1));
+            }
+            if (uri.equals(Settings.Secure.getUriFor(Constants.GLYPH_CALL_ENABLE_SIM2))) {
+                mCallPreference.setChecked(SettingsManager.isGlyphCallEnabled(2));
             }
             if (uri.equals(Settings.Secure.getUriFor(Constants.GLYPH_NOTIFS_ENABLE))) {
                 mNotifsPreference.setChecked(SettingsManager.isGlyphNotifsEnabled());

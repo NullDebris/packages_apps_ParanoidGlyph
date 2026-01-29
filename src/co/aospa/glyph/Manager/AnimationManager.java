@@ -342,8 +342,13 @@ public final class AnimationManager {
         }
     }
 
-    public static void playCall(String name) {
+    public static void playCall() {
+        playCall(-1);
+    }
+
+    public static void playCall(int slotIndex) {
         StatusManager.setCallLedEnabled(true);
+        String name = SettingsManager.getGlyphCallAnimation(slotIndex);
 
         if (!check("call: " + name, true))
             return;
@@ -354,7 +359,7 @@ public final class AnimationManager {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(
                     ResourceUtils.getCallAnimation(name)))) {
                 Iterator<String> it = ResourceUtils.iterateCsvLines(reader,
-                        SettingsManager.isGlyphCallAnimationReversed());
+                        SettingsManager.isGlyphCallAnimationReversed(slotIndex));
                 while (it.hasNext()) {
                     if (checkInterruption("call")) throw new InterruptedException();
                     String[] pattern = it.next().split(",");

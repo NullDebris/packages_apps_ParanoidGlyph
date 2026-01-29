@@ -26,26 +26,42 @@ import android.os.IBinder;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
+import android.telephony.PhoneStateListener;
+import android.telephony.SubscriptionInfo;
+import android.telephony.SubscriptionManager;
+import android.telephony.TelephonyCallback;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import co.aospa.glyph.Manager.AnimationManager;
 import co.aospa.glyph.Manager.SettingsManager;
 
-public class CallReceiverService extends Service {
+public class CallReceiverService extends Service implements OnIncomingCallListener {
 
     private static final String TAG = "GlyphCallReceiverService";
     private static final boolean DEBUG = true;
 
+    private final Map<Integer, CallStateCallback> mCallbacks = new HashMap<>();
+    private final Map<Integer, TelephonyManager> mTelephonyManagers = new HashMap<>();
     private AudioManager mAudioManager;
+    private TelephonyManager tm;
+    private TelephonyManager tmForSub;
+
+    private SubscriptionManager sm;
 
     private HandlerThread thread;
     private Handler mThreadHandler;
 
+    int incomingSlotIndex = -1;
+
     private Runnable playCall = new Runnable() {
         @Override
         public void run() {
-            AnimationManager.playCall(SettingsManager.getGlyphCallAnimation());
+            AnimationManager.playCall(incomingSlotIndex);
         }
     };
 
@@ -63,9 +79,9 @@ public class CallReceiverService extends Service {
         mAudioManager.addOnModeChangedListener(cmd -> mThreadHandler.post(cmd), mAudioManagerOnModeChangedListener);
         mAudioManagerOnModeChangedListener.onModeChanged(mAudioManager.getMode());
 
-        IntentFilter callReceiver = new IntentFilter();
-        callReceiver.addAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED);
-        registerReceiver(mCallReceiver, callReceiver);
+//        IntentFilter callReceiver = new IntentFilter();
+//        callReceiver.addAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED);
+//        registerReceiver(mCallReceiver, callReceiver);
     }
 
     @Override
@@ -77,7 +93,8 @@ public class CallReceiverService extends Service {
     @Override
     public void onDestroy() {
         if (DEBUG) Log.d(TAG, "Destroying service");
-        this.unregisterReceiver(mCallReceiver);
+        unregisterCallbacks();
+       // this.unregisterReceiver(mCallReceiver);
         mAudioManager.removeOnModeChangedListener(mAudioManagerOnModeChangedListener);
         disableCallAnimation();
         thread.quit();
@@ -89,7 +106,50 @@ public class CallReceiverService extends Service {
         return null;
     }
 
-    private void enableCallAnimation() {
+    private void registerCallbacks() {
+        TelephonyManager baseTm = getSystemService(TelephonyManager.class);
+        SubscriptionManager sm = getSystemService(SubscriptionManager.class);
+
+        List<SubscriptionInfo> subs = sm.getActiveSubscriptionInfoList();
+        if (subs == null || subs.isEmpty()) {
+            return;
+        }
+
+        for (SubscriptionInfo sub : subs) {
+            int subId = sub.getSubscriptionId();
+            int slotIndex = sub.getSimSlotIndex();
+
+            TelephonyManager tmForSub =
+                    baseTm.createForSubscriptionId(subId);
+
+            CallStateCallback cb =
+                    new CallStateCallback(subId, slotIndex, this);
+
+            tmForSub.registerTelephonyCallback(
+                    getMainExecutor(),
+                    cb
+            );
+
+            mCallbacks.put(subId, cb);
+            mTelephonyManagers.put(subId, tmForSub);
+        }
+    }
+
+    private void unregisterCallbacks() {
+        for (int subId : mCallbacks.keySet()) {
+            TelephonyManager tm = mTelephonyManagers.get(subId);
+            CallStateCallback cb = mCallbacks.get(subId);
+
+            if (tm != null && cb != null) {
+                tm.unregisterTelephonyCallback(cb);
+            }
+        }
+
+        mCallbacks.clear();
+        mTelephonyManagers.clear();
+    }
+
+private void enableCallAnimation() {
         if (DEBUG) Log.d(TAG, "enableCallAnimation");
         mThreadHandler.post(playCall);
     }
@@ -101,26 +161,27 @@ public class CallReceiverService extends Service {
         AnimationManager.stopCall();
     }
 
-    private final BroadcastReceiver mCallReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(TelephonyManager.ACTION_PHONE_STATE_CHANGED)) {
-                String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
-                if(state.equals(TelephonyManager.EXTRA_STATE_RINGING)){
-                    if (DEBUG) Log.d(TAG, "EXTRA_STATE_RINGING");
-                    enableCallAnimation();
-                }
-                if ((state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK))){
-                    if (DEBUG) Log.d(TAG, "EXTRA_STATE_OFFHOOK");
-                    disableCallAnimation();
-                }
-                if (state.equals(TelephonyManager.EXTRA_STATE_IDLE)){
-                    if (DEBUG) Log.d(TAG, "EXTRA_STATE_IDLE");
-                    disableCallAnimation();
-                }
-            }
-        }
-    };
+//    private final BroadcastReceiver mCallReceiver = new BroadcastReceiver() {
+//        @Override
+//        public void onReceive(Context context, Intent intent) {
+//            if (intent.getAction().equals(TelephonyManager.ACTION_PHONE_STATE_CHANGED)) {
+//                String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
+//                if (state.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
+//                    if (DEBUG) Log.d(TAG, "EXTRA_STATE_RINGING");
+//                    enableCallAnimation();
+//                }
+//
+//                if ((state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK))){
+//                    if (DEBUG) Log.d(TAG, "EXTRA_STATE_OFFHOOK");
+//                    disableCallAnimation();
+//                }
+//                if (state.equals(TelephonyManager.EXTRA_STATE_IDLE)){
+//                    if (DEBUG) Log.d(TAG, "EXTRA_STATE_IDLE");
+//                    disableCallAnimation();
+//                }
+//            }
+//        }
+//    };
 
     private final AudioManager.OnModeChangedListener mAudioManagerOnModeChangedListener = new AudioManager.OnModeChangedListener() {
         @Override
@@ -131,4 +192,16 @@ public class CallReceiverService extends Service {
             }
         }
     };
+
+    @Override
+    public void onIncomingCall(int slotIndex, int subId, int state) {
+        if (state == TelephonyManager.CALL_STATE_RINGING) {
+            if (SettingsManager.isGlyphCallAnimationMerged()){
+                incomingSlotIndex = -1;
+            } else {
+                incomingSlotIndex = slotIndex;
+            }
+            enableCallAnimation();
+        }
+    }
 }

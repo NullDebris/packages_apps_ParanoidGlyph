@@ -230,7 +230,11 @@ public final class ServiceUtils {
                     stopPowershareService();
                 }
             }
-            if (SettingsManager.isGlyphCallEnabled()) {
+            if (SettingsManager.isGlyphCallAnimationMerged() && SettingsManager.isGlyphCallEnabled(-1)) {
+                startCallReceiverService();
+            } else if (!SettingsManager.isGlyphCallAnimationMerged()
+                    && SettingsManager.isGlyphCallEnabled(0)
+                    || SettingsManager.isGlyphCallEnabled(1)) {
                 startCallReceiverService();
             } else {
                 stopCallReceiverService();

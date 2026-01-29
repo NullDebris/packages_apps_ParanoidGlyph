@@ -59,6 +59,10 @@
 
     <string name="glyph_settings_call_title">Calls</string>
     <string name="glyph_settings_call_toggle_title">Call animation</string>
+    <string name="glyph_settings_call_sim_merge_toggle_title">Single animation</string>
+    <string name="glyph_settings_call_sim_merge_toggle_summary">Use the same animation for both SIMs</string>
+    <string name="glyph_settings_call_toggle_title_sim1">Call animation (SIM 1)</string>
+    <string name="glyph_settings_call_toggle_title_sim2">Call animation (SIM 2)</string>
     <string name="glyph_settings_call_toggle_summary">Flash LEDs on incoming calls</string>
     <string name="glyph_settings_call_sub_toggle_title">Enable call animation</string>
     <string name="glyph_settings_call_sub_animations_title">Pattern</string>

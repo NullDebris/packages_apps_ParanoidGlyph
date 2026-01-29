@@ -16,16 +16,15 @@
 
 package co.aospa.glyph.Settings;
 
-import androidx.fragment.app.Fragment;
-
-import android.content.Intent;
 import android.os.Bundle;
 
-import co.aospa.glyph.Constants.Constants;
+import androidx.fragment.app.Fragment;
 
 import com.android.settingslib.collapsingtoolbar.CollapsingToolbarBaseActivity;
 
-public class CallSettingsActivity extends CollapsingToolbarBaseActivity {
+import co.aospa.glyph.Constants.Constants;
+
+public class CallSettingsSim2Activity extends CollapsingToolbarBaseActivity {
 
     private CallSettingsFragment mCallSettingsFragment;
 
@@ -37,12 +36,16 @@ public class CallSettingsActivity extends CollapsingToolbarBaseActivity {
             Constants.CONTEXT = getApplicationContext();
         }
 
+
         Fragment fragment = getSupportFragmentManager().findFragmentById(com.android.settingslib.collapsingtoolbar.R.id.content_frame);
         if (fragment == null) {
             mCallSettingsFragment = new CallSettingsFragment();
+            Bundle args = new Bundle();
+            args.putString("subId", "2");
+            mCallSettingsFragment.setArguments(args);
             getSupportFragmentManager().beginTransaction()
-                .add(com.android.settingslib.collapsingtoolbar.R.id.content_frame, mCallSettingsFragment)
-                .commit();
+                    .add(com.android.settingslib.collapsingtoolbar.R.id.content_frame, mCallSettingsFragment)
+                    .commit();
         } else {
             mCallSettingsFragment = (CallSettingsFragment) fragment;
         }

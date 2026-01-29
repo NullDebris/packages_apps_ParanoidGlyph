@@ -123,10 +123,23 @@ public final class SettingsManager {
                 .getBoolean(Constants.GLYPH_CHARGING_POWERSHARE_ENABLE, false) && isGlyphEnabled();
     }
 
-    public static boolean isGlyphCallEnabled() {
+    public static boolean isGlyphCallEnabled(int idx) {
+        String suffix = "";
+        switch (idx) {
+            case -1 -> suffix = "";
+            case 0 -> suffix = "_sim1";
+            case 1 -> suffix = "_sim2";
+        }
+
         Context ctx = getContext();
         return Settings.Secure.getInt(ctx.getContentResolver(),
-                Constants.GLYPH_CALL_ENABLE, 1) != 0 && isGlyphEnabled();
+                Constants.GLYPH_CALL_ENABLE + suffix, 1) != 0 && isGlyphEnabled();
+    }
+
+    public static boolean isGlyphCallAnimationMerged() {
+        Context ctx = getContext();
+        return Settings.Secure.getInt(ctx.getContentResolver(),
+                Constants.GLYPH_CALL_SIM_MERGE_ENABLE, 1) != 0 && isGlyphEnabled();
     }
 
     public static boolean setGlyphCallEnabled(boolean enable) {
@@ -135,17 +148,29 @@ public final class SettingsManager {
                 Constants.GLYPH_CALL_ENABLE, enable ? 1 : 0);
     }
 
-    public static String getGlyphCallAnimation() {
+    public static String getGlyphCallAnimation(int idx) {
+        String suffix = "";
+        switch (idx) {
+            case -1 -> suffix = "";
+            case 0 -> suffix = "_sim1";
+            case 1 -> suffix = "_sim2";
+        }
         Context ctx = getContext();
         return PreferenceManager.getDefaultSharedPreferences(ctx)
-                .getString(Constants.GLYPH_CALL_SUB_ANIMATIONS,
+                .getString(Constants.GLYPH_CALL_SUB_ANIMATIONS + suffix,
                         ResourceUtils.getString("glyph_settings_call_animations_default"));
     }
 
-    public static boolean isGlyphCallAnimationReversed() {
+    public static boolean isGlyphCallAnimationReversed(int idx) {
+        String suffix = "";
+        switch (idx) {
+            case -1 -> suffix = "";
+            case 0 -> suffix = "_sim1";
+            case 1 -> suffix = "_sim2";
+        }
         Context ctx = getContext();
          return PreferenceManager.getDefaultSharedPreferences(ctx)
-                .getBoolean(Constants.GLYPH_CALL_REVERSE_ANIMATION_ENABLE,
+                .getBoolean(Constants.GLYPH_CALL_REVERSE_ANIMATION_ENABLE + suffix,
                         false);
     }
 
