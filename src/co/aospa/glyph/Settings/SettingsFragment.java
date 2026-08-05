@@ -50,6 +50,7 @@ import android.util.Log;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 
+import co.aospa.glyph.Manager.AnimationManager;
 import co.aospa.glyph.Manager.StatusManager;
 import co.aospa.glyph.R;
 import co.aospa.glyph.Constants.Constants;
@@ -97,6 +98,9 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
     private ContentResolver mContentResolver;
     private SettingObserver mSettingObserver;
     private Preference mSchedulePreference;
+
+    private static final long BRIGHTNESS_PREVIEW_TIMEOUT_MS = 3000;
+    private final Runnable mStopBrightnessPreview = AnimationManager::stopBrightnessPreview;
 
     private Preference mUtilitiesPreference;
 
@@ -299,6 +303,17 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
             case Constants.GLYPH_AUTO_BRIGHTNESS_ENABLE -> {
                 mBrightnessPreference.setEnabled(!(Boolean) newValue);
             }
+            case Constants.GLYPH_BRIGHTNESS -> {
+                if (SettingsManager.isGlyphEnabled()) {
+                    int settingValue = (Integer) newValue;
+                    int[] levels = Constants.getBrightnessLevels();
+                    int rawBrightness = levels[settingValue - 1];
+
+                    mHandler.removeCallbacks(mStopBrightnessPreview);
+                    AnimationManager.previewBrightness(rawBrightness);
+                    mHandler.postDelayed(mStopBrightnessPreview, BRIGHTNESS_PREVIEW_TIMEOUT_MS);
+                }
+            }
             case Constants.GLYPH_PROGRESS_ENABLE -> {
                 boolean enabled = (Boolean) newValue;
 
@@ -467,6 +482,10 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
             requireContext().unregisterReceiver(mScheduleUpdateReceiver);
         } catch (Exception e) {
             // Receiver not registered
+        }
+        if (mHandler.hasCallbacks(mStopBrightnessPreview)) {
+            mHandler.removeCallbacks(mStopBrightnessPreview);
+            mStopBrightnessPreview.run();
         }
         super.onDestroy();
     }

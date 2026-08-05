@@ -768,4 +768,22 @@ public final class AnimationManager {
         int[] pattern = new int[Constants.getSupportedAnimationPatternLengths()[0]];
         updateLedFrame(pattern);
     }
+
+    /**
+     * Temporarily lights up all glyphs at the given raw brightness level
+     */
+    public static void previewBrightness(int brightness) {
+        // Glyph is already in use , so skip preview
+        if (!StatusManager.isGlyphIdle()) {
+            return;
+        }
+        FileUtils.writeAllLed(brightness);
+    }
+
+    /**
+     * Ends a brightness preview started by previewBrightness() 
+     */
+    public static void stopBrightnessPreview() {
+        FileUtils.writeAllLed(0);
+    }
 }
