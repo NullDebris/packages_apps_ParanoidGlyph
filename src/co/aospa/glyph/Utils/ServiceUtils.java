@@ -195,40 +195,40 @@ public final class ServiceUtils {
     public static void startProgressService() {
         if (Constants.Device.isPhone1()) return;
         if (DEBUG) Log.d(TAG, "Starting Progress service");
-        context.startServiceAsUser(new Intent(context, ProgressService.class),
+        getContext().startServiceAsUser(new Intent(getContext(), ProgressService.class),
                 UserHandle.CURRENT);
     }
 
     public static void stopProgressService() {
         if (Constants.Device.isPhone1()) return;
         if (DEBUG) Log.d(TAG, "Stopping Progress service");
-        context.stopServiceAsUser(new Intent(context, ProgressService.class),
+        getContext().stopServiceAsUser(new Intent(getContext(), ProgressService.class),
                 UserHandle.CURRENT);
     }
 
     public static void startMicActivityService() {
         if (!(Constants.Device.isPhone1() || Constants.Device.isPhone2())) return;
         if (DEBUG) Log.d(TAG, "Starting Mic activity service");
-        context.startServiceAsUser(new Intent(context, MicActivityService.class),
+        getContext().startServiceAsUser(new Intent(getContext(), MicActivityService.class),
                 UserHandle.CURRENT);
     }
 
     public static void stopMicActivityService() {
         if (!(Constants.Device.isPhone1() || Constants.Device.isPhone2())) return;
         if (DEBUG) Log.d(TAG, "Starting Mic activity service");
-        context.stopServiceAsUser(new Intent(context, MicActivityService.class),
+        getContext().stopServiceAsUser(new Intent(getContext(), MicActivityService.class),
                 UserHandle.CURRENT);
     }
 
     public static void startTorchService() {
         if (DEBUG) Log.d(TAG, "Starting Torch service");
-        context.startServiceAsUser(new Intent(context, TorchService.class),
+        getContext().startServiceAsUser(new Intent(getContext(), TorchService.class),
                 UserHandle.CURRENT);
     }
 
     public static void stopTorchService() {
         if (DEBUG) Log.d(TAG, "Stopping Torch service");
-        context.stopServiceAsUser(new Intent(context, TorchService.class),
+        getContext().stopServiceAsUser(new Intent(getContext(), TorchService.class),
                 UserHandle.CURRENT);
     }
 
