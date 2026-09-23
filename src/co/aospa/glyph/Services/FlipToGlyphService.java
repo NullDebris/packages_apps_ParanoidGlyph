@@ -87,18 +87,20 @@ public class FlipToGlyphService extends Service {
     private void onFlip(boolean flipped) {
         if (flipped == isFlipped) return;
         if (DEBUG) Log.d(TAG, "Flipped: " + flipped);
-        if (flipped && SettingsManager.isGlyphFlipAnimationEnabled()
+        if (flipped) {
+            if (SettingsManager.isGlyphFlipAnimationEnabled()
                 && StatusManager.isGlyphIdle()) {
-            String animationName = SettingsManager.getGlyphFlipAnimation();
-            boolean shouldReverse = SettingsManager.isGlyphFlipAnimationReversed();
-            if (animationName.equals(Constants.GLYPH_NOTIF_ANIMATION_ALTERNATE)) {
-                AnimationManager.playCsvAlternate(mContext, SettingsManager.getGlyphNotifsAnimation());
-            } else if (shouldReverse) {
-                AnimationManager.playCsvReverse(mContext, animationName);
-            } else {
-                AnimationManager.playCsv(mContext, animationName);
+                String animationName = SettingsManager.getGlyphFlipAnimation();
+                boolean shouldReverse = SettingsManager.isGlyphFlipAnimationReversed();
+                if (animationName.equals(Constants.GLYPH_NOTIF_ANIMATION_ALTERNATE)) {
+                    AnimationManager.playCsvAlternate(mContext, SettingsManager.getGlyphNotifsAnimation());
+                } else if (shouldReverse) {
+                    AnimationManager.playCsvReverse(mContext, animationName);
+                } else {
+                    AnimationManager.playCsv(mContext, animationName);
+                }
             }
-
+            
             ringerMode = mAudioManager.getRingerModeInternal();
             int preferredMode = SettingsManager.getFlipRingerMode();
             if (DEBUG) Log.d(TAG, "Preferred ringer mode: " + preferredMode);
