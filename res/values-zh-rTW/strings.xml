@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright (C) 2013-2016 The CyanogenMod Project
+                   2017 The LineageOS Project
+                   2020-2024 Paranoid Android
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <!-- DO NOT TRANSLATE Empty summary for dynamic preferences -->
+    <string name="summary_empty" translatable="false"></string>
+
+    <!-- App Name -->
+    <string name="glyph_settings_app_name">Glyph 介面</string>
+
+    <string name="glyph_settings_default_option">預設</string>
+
+    <!-- Glyph Settings -->
+    <string name="glyph_settings_enable">Glyph 燈效</string>
+    <string name="glyph_settings_title">Glyph 介面</string>
+    <string name="glyph_settings_summary">Glyph 燈效設定選項</string>
+
+    <string name="glyph_settings_summary_battery_saving">已由省電模式停用</string>
+    <string name="glyph_settings_summary_schedule">已由排程停用</string>
+
+    <string name="glyph_settings_auto_brightness_toggle_title">自動調整亮度</string>
+    <string name="glyph_settings_auto_brightness_toggle_summary">Glyph 亮度將根據周圍環境自動調整</string>
+
+    <string name="glyph_settings_brightness">亮度</string>
+
+    <string name="glyph_settings_sub_animations_title">樣式</string>
+    <string name="glyph_settings_sub_animations_title_sync_enabled">樣式（後備）</string>
+
+    <string name="glyph_settings_animation_is_reversed">反轉</string>
+
+    <string name="glyph_settings_battery_saver_toggle_title">跟隨省電模式</string>
+    <string name="glyph_settings_battery_saver_toggle_summary">開啟省電模式時停用 Glyph 介面</string>
+
+    <string name="glyph_settings_charging_title">充電</string>
+    <string name="glyph_settings_charging_level_title">電量指示</string>
+    <string name="glyph_settings_charging_level_summary">接上電源時顯示電量</string>
+    <string name="glyph_settings_charging_powershare_title">反向無線充電</string>
+    <string name="glyph_settings_charging_powershare_summary">偵測到反向無線充電時顯示動畫</string>
+
+    <string name="glyph_settings_animations_live_preview_summary_playing">正在播放…</string>
+    <string name="glyph_settings_animations_live_preview_title">即時預覽</string>
+    <string name="glyph_settings_animations_live_preview_summary">在 Glyph 燈上預覽所選動畫</string>
+
+    <string name="glyph_settings_flip_title">翻轉至 Glyph</string>
+
+    <string name="glyph_settings_flip_toggle_title">@string/glyph_settings_flip_title</string>
+    <string name="glyph_settings_flip_toggle_summary">手機螢幕朝下放置時顯示 Glyph 燈效</string>
+
+    <string name="glyph_settings_flip_sub_animation_toggle_title">播放動畫</string>
+    <string name="glyph_settings_flip_sub_animation_toggle_summary">偵測到翻轉時顯示動畫</string>
+
+    <string name="glyph_settings_flip_sub_animations_title">翻轉至 Glyph 動畫</string>
+
+    <string name="glyph_settings_flip_ringer_mode_title">響鈴模式</string>
+    <string name="glyph_settings_flip_ringer_mode_summary">選擇裝置翻轉時的響鈴模式</string>
+
+    <string name="glyph_settings_flip_ringer_mode_follow_system">跟隨系統</string>
+    <string name="glyph_settings_flip_ringer_mode_vibrate">震動</string>
+    <string name="glyph_settings_flip_ringer_mode_silent">靜音</string>
+    <string name="glyph_settings_flip_ringer_mode_normal">響鈴</string>
+
+    <string name="glyph_settings_flip_animation_option_follow_notification">使用通知動畫（正向-反向）</string>
+
+    <string name="glyph_settings_call_title">通話</string>
+    <string name="glyph_settings_call_toggle_title">來電動畫</string>
+    <string name="glyph_settings_call_toggle_summary">有來電時閃爍 LED</string>
+    <string name="glyph_settings_call_sub_toggle_title">啟用來電動畫</string>
+
+    <string name="glyph_settings_call_sub_title">第三方應用程式</string>
+
+    <string name="glyph_settings_call_sub_contact_select_title">個別聯絡人設定</string>
+    <string name="glyph_settings_call_sub_contact_select_summary">選擇要進行設定的聯絡人</string>
+
+    <string name="glyph_settings_delete_confirm_message_start">您確定要刪除以下項目的設定：</string>
+    <string name="glyph_settings_delete_title">刪除設定</string>
+
+    <string name="glyph_settings_call_sub_animations_title">@string/glyph_settings_sub_animations_title</string>
+
+    <string name="glyph_settings_call_ogg_sync_toggle_title">與鈴聲同步</string>
+    <string name="glyph_settings_call_ogg_sync_toggle_summary">使用鈴聲中的動畫（若可用）</string>
+
+    <string name="glyph_settings_notifs_ogg_sync_toggle_title">與通知音效同步</string>
+    <string name="glyph_settings_notifs_ogg_sync_toggle_summary">使用通知音效中的動畫（若可用）</string>
+
+    <string name="glyph_settings_call_additional_hint">可將新的 CSV 動畫放置於 /sdcard/Glyph/Call</string>
+
+    <string name="glyph_settings_notifs_title">通知</string>
+    <string name="glyph_settings_notifs_toggle_title">通知動畫</string>
+    <string name="glyph_settings_notifs_toggle_summary">收到新通知時閃爍 LED</string>
+    <string name="glyph_settings_notifs_sub_title">允許的應用程式</string>
+    <string name="glyph_settings_notifs_sub_toggle_title">啟用通知動畫</string>
+    <string name="glyph_settings_notifs_sub_animations_title">@string/glyph_settings_sub_animations_title</string>
+    <string name="glyph_settings_notifs_sub_essential_title">重要通知</string>
+    <string name="glyph_settings_notifs_sub_essential_summary">在讀取或關閉重要通知之前，重要 Glyph 指示燈將持續亮起</string>
+
+    <string name="glyph_settings_notifs_additional_hint">可將新的 CSV 動畫放置於 /sdcard/Glyph/Notifications</string>
+
+    <string name="glyph_settings_sub_animations_reverse_toggle_title">反轉動畫</string>
+    <string name="glyph_settings_sub_animations_reverse_toggle_summary">從結尾倒序播放動畫至開頭</string>
+
+    <string name="glyph_settings_notifs_permission_dialog_title">需要通知存取權</string>
+    <string name="glyph_settings_notifs_permission_dialog_message">若要將 Glyph 介面用於通知，您必須授予通知存取權限。</string>
+
+    <string name="glyph_settings_volume_title">音量</string>
+    <string name="glyph_settings_volume_level_toggle_title">音量指示</string>
+    <string name="glyph_settings_volume_level_toggle_summary">調整音量時顯示音量大小</string>
+
+    <string name="glyph_settings_misc_title">其他</string>
+
+    <string name="glyph_settings_music_visualizer_title">音樂視覺化</string>
+    <string name="glyph_settings_music_visualizer_toggle_title">@string/glyph_settings_music_visualizer_title</string>
+    <string name="glyph_settings_music_visualizer_toggle_summary">迪斯可燈光效果！</string>
+
+    <string name="glyph_settings_music_visualizer_mode_title">視覺化模式</string>
+    <string name="glyph_settings_music_visualizer_mode_beat_trigger">節拍觸發</string>
+    <string name="glyph_settings_music_visualizer_mode_band_intensity">頻段強度</string>
+    <string name="glyph_settings_music_visualizer_mode_band_intensity_inverted">頻段強度（反向）</string>
+
+
+    <string name="glyph_settings_music_visualizer_warning_title">偵測到衝突的服務</string>
+    <string name="glyph_settings_music_visualizer_warning_message">受限於 Android 系統限制，只有一個處理程式可擷取工作階段 0 \(Global\) 的音訊。 
+          您目前的 ROM 內建 Pulse，啟用 Glyph 音樂視覺化時該功能將停止運作。
+     </string>
+     <string name="glyph_settings_music_visualizer_disable_pulse">停用 Pulse</string>
+
+    <string name="glyph_settings_user_animation_incompatible">所選動畫與此裝置不相容！</string>
+    <string name="glyph_settings_user_animation_invalid">所選動畫無效！</string>
+    <string name="glyph_settings_user_animation_is_complex">無法顯示複雜動畫，請改用即時預覽！</string>
+
+    <!-- QS tile -->
+    <string name="glyph_accessibility_quick_settings">Glyph</string>
+    <string name="glyph_accessibility_quick_settings_torch">Glyph 手電筒</string>
+    <string name="glyph_accessibility_quick_settings_music_visualizer">Glyph 音樂視覺化</string>
+
+    <string name="glyph_accessibility_quick_settings_flip_to_glyph">@string/glyph_settings_flip_title</string>
+
+    <string name="glyph_accessibility_quick_settings_off">關閉</string>
+    <string name="glyph_accessibility_quick_settings_on">開啟</string>
+    <string name="glyph_accessibility_quick_settings_unavailable">不可用</string>
+
+    <string name="glyph_music_visualizer_pulse_toast_message">已停用 Pulse 視覺化功能以避免衝突。</string>
+
+    <!-- Glyph Schedule Settings -->
+    <string name="glyph_settings_schedule_title">排程 Glyph</string>
+    <string name="glyph_settings_schedule_summary">在指定時間內自動停用 Glyph</string>
+    <string name="glyph_settings_schedule_enable_title">啟用排程</string>
+    <string name="glyph_settings_schedule_enable_summary">在排程時間內自動停用 Glyph 功能</string>
+    <string name="glyph_settings_schedule_start_time_title">開始時間</string>
+    <string name="glyph_settings_schedule_start_time_summary">設定停用 Glyph 功能的時間</string>
+    <string name="glyph_settings_schedule_end_time_title">結束時間</string>
+    <string name="glyph_settings_schedule_end_time_summary">設定重新啟用 Glyph 功能的時間</string>
+    <string name="glyph_settings_schedule_info_summary">排程將停用除手電筒外的 Glyph 功能。手電筒圖塊在排程時間內仍可正常使用。</string>
+    <string name="glyph_settings_schedule_status_title">目前狀態</string>
+    <string name="glyph_settings_schedule_status_summary">顯示排程目前是否為啟用狀態</string>
+    <string name="glyph_settings_schedule_active">排程已啟動 — Glyph 已停用（手電筒仍可運作）</string>
+    <string name="glyph_settings_schedule_inactive">排程未啟動 — Glyph 已啟用</string>
+    <string name="glyph_settings_schedule_disabled">排程已停用</string>
+    <string name="glyph_settings_schedule_not_active_today">⏸ 今天不啟動</string>
+    <string name="glyph_accessibility_quick_settings_disabled">已停用</string>
+    <string name="glyph_settings_active_days_title">生效日</string>
+    <string name="glyph_settings_active_days_summary">每天</string>
+    <string name="glyph_settings_active_days_dialog_title">選擇日期</string>
+    <string name="glyph_settings_active_days_every_day">每天</string>
+    <string name="glyph_settings_active_days_none">未選擇任何日期</string>
+    <string name="glyph_settings_active_days_weekdays">工作日（週一至週五）</string>
+    <string name="glyph_settings_active_days_weekends">週末（週六至週日）</string>
+
+    <string name="glyph_settings_progress_title">進度指示</string>
+    <string name="glyph_settings_progress_toggle_title">Glyph 進度指示</string>
+    <string name="glyph_settings_progress_toggle_summary">當 Glyph 啟用時顯示進度條</string>
+    <string name="glyph_settings_progress_media_toggle_title">媒體進度</string>
+    <string name="glyph_settings_progress_media_toggle_summary">播放媒體時顯示進度條</string>
+    <string name="glyph_settings_progress_media_app_whitelist_title">媒體應用程式</string>
+    <string name="glyph_settings_progress_media_app_whitelist_summary">選擇要用於顯示媒體進度的應用程式</string>
+
+    <string name="glyph_settings_red_led_title">紅色 LED</string>
+
+    <string name="glyph_settings_red_led_mode_title">LED 模式</string>
+
+    <string name="glyph_settings_mic_activity_toggle_title">麥克風活動指示</string>
+    <string name="glyph_settings_mic_activity_toggle_summary">應用程式正在使用麥克風時亮起紅色 LED</string>
+
+    <string name="glyph_settings_mic_activity_whitelist_title">麥克風應用程式</string>
+    <string name="glyph_settings_mic_activity_whitelist_summary">選擇要監控麥克風使用狀況的應用程式</string>
+
+    <!-- Tone helper -->
+    <string name="notification_channel_title">音效變更</string>
+    <string name="notification_channel_description">從 OGG 檔案變更動畫時發出通知</string>
+
+    <string name="sound_changed_notification_message">已匯入動畫！</string>
+
+    <string name="ringtone_changed_notification_title">已設定新鈴聲</string>
+    <string name="notification_sound_changed_notification_title">通知音效已變更</string>
+    
+
+    <!-- Utilities -->
+    <string name="glyph_settings_utilities_title">實用工具</string>
+    <string name="glyph_settings_utilities_summary">額外的 Glyph 工具</string>
+    <string name="glyph_settings_utilities_ogg_title">OGG</string>
+
+    <string name="glyph_settings_utilities_export_csv_from_ogg_title">從 OGG 匯出 CSV</string>
+    <string name="glyph_settings_utilities_export_csv_from_ogg_summary">從包含動畫的 OGG 取得 CSV 檔案</string>
+    <string name="glyph_settings_utilities_read_ogg_title">讀取 OGG</string>
+    <string name="glyph_settings_utilities_read_ogg_summary">顯示 OGG 檔案中的中繼資料</string>
+
+    <string name="ogg_csv_export_notification_animation">儲存為通知動畫</string>
+    <string name="ogg_csv_export_call_animation">儲存為來電動畫</string>
+    <string name="ogg_csv_export_complete_message_start">檔案已儲存至：</string>
+
+    <string name="glyph_utilities_validate_csv_title">驗證 CSV</string>
+    <string name="glyph_utilities_validate_csv_summary">檢查 CSV 檔案是否有錯誤</string>
+
+    <string name="glyph_utilities_csv_title">CSV</string>
+
+    <string name="glyph_ogg_metadata_title">OGG 資訊</string>
+
+    <string name="metadata_device">裝置</string>
+
+    <string name="metadata_device_phone1_proper">Phone (1)</string>
+    <string name="metadata_device_phone2_proper">Phone (2)</string>
+    <string name="metadata_device_phone2a_proper">Phone (2a)</string>
+    <string name="metadata_device_phone3a_proper">Phone (3a)</string>
+
+    <string name="metadata_device_unsupported">不支援</string>
+    <string name="metadata_pattern_duration">動畫持續時間</string>
+    <string name="metadata_filename">檔案名稱</string>
+
+    <string name="file_export_complete_message">檔案儲存成功！</string>
+    <string name="file_already_exported_summary">檔案已儲存</string>
+
+</resources>
