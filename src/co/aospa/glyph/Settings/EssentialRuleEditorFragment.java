@@ -3,6 +3,7 @@ package co.aospa.glyph.Settings;
 import static co.aospa.glyph.Utils.InterfaceUtils.showDialog;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -199,9 +200,13 @@ public class EssentialRuleEditorFragment extends SettingsBasePreferenceFragment 
         if (!isCommitAllowed()) return;
         if (ruleId.isEmpty()) ruleId = String.valueOf(System.currentTimeMillis());
 
-        SettingsManager.Essential.setRuleName(ruleId, vm.name.trim());
-        SettingsManager.Essential.setPackages(ruleId, vm.packages);
-        SettingsManager.Essential.setKeywords(ruleId, parseKeywords(vm.keywordsRaw));
+        SharedPreferences sp = requireContext().getSharedPreferences(
+                Constants.Essential.GLYPH_ESSENTIAL_RULE_PREFIX + ruleId, Context.MODE_PRIVATE);
+        sp.edit()
+                .putString(Constants.Essential.GLYPH_ESSENTIAL_RULE_NAME, vm.name.trim())
+                .putStringSet(Constants.Essential.GLYPH_ESSENTIAL_RULE_PACKAGES, vm.packages)
+                .putStringSet(Constants.Essential.GLYPH_ESSENTIAL_RULE_KEYWORDS, parseKeywords(vm.keywordsRaw))
+                .commit();
     }
     
     private void addSavePref() {

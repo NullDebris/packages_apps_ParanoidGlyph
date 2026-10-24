@@ -37,6 +37,8 @@ public class EssentialRulesFragment extends SettingsBasePreferenceFragment {
     private PreferenceScreen mScreen;
     private PreferenceCategory mCategory;
 
+    private final Runnable mRulesListener = () -> syncRules(Data.EssentialRule.getRules());
+
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         Context context = getPreferenceManager().getContext();
@@ -77,12 +79,24 @@ public class EssentialRulesFragment extends SettingsBasePreferenceFragment {
         }, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        Data.EssentialRule.addListener(mRulesListener);
+    }
 
     @Override
     public void onResume() {
         super.onResume();
         syncRules(Data.EssentialRule.getRules());
     }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        Data.EssentialRule.removeListener(mRulesListener);
+    }
+
 
     private void syncRules(List<Data.EssentialRule> rules) {
         Set<String> newKeys = new HashSet<>();
