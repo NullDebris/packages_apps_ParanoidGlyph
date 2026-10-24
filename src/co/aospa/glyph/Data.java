@@ -20,12 +20,20 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+
+import co.aospa.glyph.Manager.SettingsManager;
 
 public class Data {
 
@@ -365,6 +373,87 @@ public class Data {
                     break;
             }
         }
+    }
+
+    public record EssentialRule(
+            String name,
+            String ruleId,
+            HashSet<String> packages,
+            HashSet<String> keywords) {
+
+        public record RuleContext(String pkg, String text) {}
+
+        private static List<EssentialRule> rules = new CopyOnWriteArrayList<>();
+        private static final ExecutorService IO = Executors.newSingleThreadExecutor();
+
+        public static List<EssentialRule> getRules() {
+            if (rules.isEmpty()) reloadRules();
+            return rules;
+        }
+
+        public static void reloadRules() {
+            IO.execute(() -> rules = List.copyOf(SettingsManager.Essential.getRules()));
+        }
+
+        private boolean isBlank() {
+            return packages.isEmpty() && keywords.isEmpty();
+        }
+
+        private enum MatchType {
+            // CONTACT,
+            PACKAGE,
+            KEYWORD
+        }
+
+        public static List<EssentialRule> getMatchingRules(RuleContext rc) {
+            List<EssentialRule> matchingRules = new ArrayList<>();
+            for (EssentialRule rule : getRules()) {
+                if (rule.evaluateMatch(rc)) matchingRules.add(rule);
+            }
+
+            return matchingRules;
+        }
+
+        private static <T> boolean satisfied(Set<T> allowed, T value) {
+            return allowed.isEmpty() || (value != null && allowed.contains(value));
+        }
+
+        public boolean evaluateMatch(RuleContext ctx) {
+            return !isBlank()
+                    && satisfied(packages, ctx.pkg())
+                    && (keywords.isEmpty() || (ctx.text() != null && matchesAnyKeyword(ctx.text())));
+        }
+
+//        public boolean matchesContact(String contactId) {
+//            return contacts.contains(contactId);
+//        }
+
+        public HashSet<String> matchesKeywords(String text) {
+            HashSet<String> matches = new HashSet<>();
+            for (String keyword : keywords) {
+                if (text.contains(keyword)) {
+                    matches.add(keyword);
+                }
+            }
+            return matches;
+        }
+
+        public boolean matchesAnyKeyword(String text) {
+            return keywords.stream().anyMatch(text::contains);
+        }
+
+        public boolean matchesPackage(String pkg) {
+            return packages.contains(pkg);
+        }
+
+        private Set<MatchType> getRequiredMatches() {
+            EnumSet<MatchType> required = EnumSet.noneOf(MatchType.class);
+            // if (!contacts.isEmpty()) required.add(MatchType.CONTACT);
+            if (!packages.isEmpty()) required.add(MatchType.PACKAGE);
+            if (!keywords.isEmpty()) required.add(MatchType.KEYWORD);
+            return required;
+        }
+
     }
 
 }

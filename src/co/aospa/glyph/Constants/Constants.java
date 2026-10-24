@@ -113,6 +113,16 @@ public final class Constants {
     public static final String GLYPH_UTILITIES_READ_OGG = "glyph_utilities_read_ogg";
     public static final String GLYPH_UTILITIES_OGG_EXPORT_CSV = "glyph_utilities_export_csv_from_ogg";
 
+    public static class Essential {
+        public static final String GLYPH_ESSENTIAL_NOTIFICATIONS = "glyph_settings_essential_notifications";
+
+        public static final String GLYPH_ESSENTIAL_RULE_PREFIX = "essential_";
+        public static final String GLYPH_ESSENTIAL_RULE_NAME = "name";
+        public static final String GLYPH_ESSENTIAL_RULE_PACKAGES = "packages";
+        public static final String GLYPH_ESSENTIAL_RULE_CONTACTS = "contacts";
+        public static final String GLYPH_ESSENTIAL_RULE_KEYWORDS = "keywords";
+    }
+
     public static class Device {
 
         public static final String PHONE1 = "phone1";

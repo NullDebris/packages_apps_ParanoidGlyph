@@ -97,6 +97,18 @@
             </intent>
         </com.android.settingslib.PrimarySwitchPreference>
 
+        <Preference
+            android:key="glyph_settings_essential_notifications"
+            android:icon="@drawable/ic_essential_notification"
+            android:title="@string/glyph_settings_notifs_sub_essential_title"
+            android:summary="@string/glyph_settings_notifs_sub_essential_summary" >
+            <intent android:action="android.intent.action.MAIN"
+                android:targetPackage="co.aospa.glyph"
+                android:targetClass="co.aospa.glyph.Settings.SubSettingsActivity">
+                <extra android:name="fragment" android:value=".Settings.EssentialRulesFragment" />
+            </intent>
+        </Preference>
+
     </PreferenceCategory>
 
     <PreferenceCategory

@@ -47,6 +47,7 @@ public class BootCompletedReceiver extends BroadcastReceiver {
 
         if (action != null && action.equals(Intent.ACTION_BOOT_COMPLETED)) {
             Data.ApplicationData.init(context.getApplicationContext());
+            Data.EssentialRule.reloadRules();
         }
     }
 }

@@ -17,6 +17,7 @@
 package co.aospa.glyph.Manager;
 
 import android.app.ActivityManager;
+import android.app.NotificationChannel;
 import android.content.Context;
 import android.content.ContentResolver;
 import android.media.AudioManager;
@@ -27,10 +28,17 @@ import androidx.preference.PreferenceManager;
 
 import com.android.internal.util.ArrayUtils;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import co.aospa.glyph.Constants.Constants;
+import co.aospa.glyph.Data;
 import co.aospa.glyph.Utils.FileUtils;
 import co.aospa.glyph.Utils.ResourceUtils;
 
@@ -430,6 +438,102 @@ public final class SettingsManager {
         int currentUser = ActivityManager.getCurrentUser();
         Settings.Secure.putIntForUser(ctx.getContentResolver(),
                 key, state ? 1 : 0, currentUser);
+    }
+
+    public static class Essential {
+
+        public static boolean deleteRule(String ruleId) {
+            Context ctx = getContext();
+            return ctx.deleteSharedPreferences(Constants.Essential.GLYPH_ESSENTIAL_RULE_PREFIX + ruleId);
+        }
+
+        public static Data.EssentialRule getRule(String ruleId) {
+            Context ctx = getContext();
+            Map<String, ?> rulePref = ctx.getSharedPreferences(Constants.Essential.GLYPH_ESSENTIAL_RULE_PREFIX + ruleId,
+                    Context.MODE_PRIVATE).getAll();
+
+            if (!rulePref.isEmpty()) {
+                String ruleName = null;
+                HashSet<String> packages = new HashSet<>();
+                HashSet<String> keywords = new HashSet<>();
+                for (String key : rulePref.keySet()) {
+                    Object value = rulePref.get(key);
+                    switch (key) {
+                        case Constants.Essential.GLYPH_ESSENTIAL_RULE_NAME -> ruleName = (String) value;
+                        case Constants.Essential.GLYPH_ESSENTIAL_RULE_KEYWORDS -> keywords.addAll((Set) value);
+                        case Constants.Essential.GLYPH_ESSENTIAL_RULE_PACKAGES -> packages.addAll((Set) value);
+                    }
+                }
+                return new Data.EssentialRule(ruleName, ruleId, packages, keywords);
+            }
+            return null;
+        }
+
+        public static List<Data.EssentialRule> getRules() {
+            Context ctx = getContext();
+            List<String> names = findSharedPreferenceNames(ctx, Constants.Essential.GLYPH_ESSENTIAL_RULE_PREFIX);
+            if (names.isEmpty()) return Collections.emptyList();
+
+            String prefix = Constants.Essential.GLYPH_ESSENTIAL_RULE_PREFIX;
+            List<Data.EssentialRule> rules = new ArrayList<>();
+
+            for (String n : names) {
+                String ruleId = n.substring(prefix.length());
+                Data.EssentialRule rule = getRule(ruleId);
+                if (rule != null) rules.add(rule);
+            }
+            return rules;
+        }
+
+        public static void setRuleName(String ruleId, String name) {
+            Context ctx = getContext();
+            ctx.getSharedPreferences(Constants.Essential.GLYPH_ESSENTIAL_RULE_PREFIX + ruleId
+                            , Context.MODE_PRIVATE)
+                    .edit()
+                    .putString(Constants.Essential.GLYPH_ESSENTIAL_RULE_NAME, name)
+                    .apply();
+        }
+
+        public static void setKeywords(String ruleId, Set<String> keywords) {
+            Context ctx = getContext();
+            ctx.getSharedPreferences(Constants.Essential.GLYPH_ESSENTIAL_RULE_PREFIX + ruleId
+                                , Context.MODE_PRIVATE)
+                        .edit()
+                        .putStringSet(Constants.Essential.GLYPH_ESSENTIAL_RULE_KEYWORDS, keywords)
+                        .apply();
+        }
+
+        public static void setPackages(String ruleId, Set<String> packages) {
+            Context ctx = getContext();
+            ctx.getSharedPreferences(Constants.Essential.GLYPH_ESSENTIAL_RULE_PREFIX + ruleId
+                            , Context.MODE_PRIVATE)
+                    .edit()
+                    .putStringSet(Constants.Essential.GLYPH_ESSENTIAL_RULE_PACKAGES, packages)
+                    .apply();
+        }
+
+        public static void setContacts(String ruleId, Set<String> contacts) {
+            Context ctx = getContext();
+            ctx.getSharedPreferences(Constants.Essential.GLYPH_ESSENTIAL_RULE_PREFIX + ruleId
+                            , Context.MODE_PRIVATE)
+                    .edit()
+                    .putStringSet(Constants.Essential.GLYPH_ESSENTIAL_RULE_CONTACTS, contacts)
+                    .apply();
+        }
+
+    }
+
+    private static List<String> findSharedPreferenceNames(Context ctx, String prefix) {
+        File dir = new File(ctx.getApplicationInfo().dataDir, "shared_prefs");
+        File[] files = dir.listFiles((d, n) -> n.endsWith(".xml") && n.startsWith(prefix));
+        List<String> names = new ArrayList<>();
+        if (files != null) {
+            for (File f : files) {
+                names.add(f.getName().substring(0, f.getName().length() - 4));
+            }
+        }
+        Collections.sort(names);
+        return names;
     }
 
 

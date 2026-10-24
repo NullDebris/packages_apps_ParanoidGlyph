@@ -106,7 +106,7 @@
     <string name="glyph_settings_notifs_sub_title">Apps to allow</string>
     <string name="glyph_settings_notifs_sub_toggle_title">Enable notification animation</string>
     <string name="glyph_settings_notifs_sub_animations_title">@string/glyph_settings_sub_animations_title</string>
-    <string name="glyph_settings_notifs_sub_essential_title">Essential Notification</string>
+    <string name="glyph_settings_notifs_sub_essential_title">Essential Notifications</string>
     <string name="glyph_settings_notifs_sub_essential_summary">Essential Glyph will be displayed until Essential notifications are read or dismissed</string>
 
     <string name="glyph_settings_notifs_additional_hint">New CSV animations can placed in /sdcard/Glyph/Notifications</string>
@@ -207,6 +207,35 @@
 
     <string name="ringtone_changed_notification_title">New ringtone set</string>
     <string name="notification_sound_changed_notification_title">Notification sound changed</string>
+
+    <!-- Essential V2 (rules) -->
+    <string name="glyph_settings_essential_rule_editor_title">Rule editor</string>
+    <string name="glyph_settings_essential_rule_editor_name_title">Rule name</string>
+    <string name="glyph_settings_essential_rule_editor_keywords_dialog_message">Separate each keyword with a comma</string>
+    <string name="glyph_settings_essential_rule_editor_contacts_title">Contacts</string>
+    <string name="glyph_settings_essential_rule_editor_keywords_title">Keywords</string>
+    <string name="glyph_settings_essential_rule_editor_packages_title">Apps</string>
+    <string name="glyph_settings_essential_rule_editor_edit_rule_title">Edit rule</string>
+    <string name="glyph_settings_essential_rule_editor_new_rule_title">New rule</string>
+
+    <string name="glyph_settings_essential_rule_editor_any_summary">Any</string>
+
+    <string name="glyph_settings_essential_rule_editor_save_rule_title">Save rule</string>
+    <string name="glyph_settings_essential_rule_editor_delete_rule_title">Delete rule</string>
+
+    <string name="glyph_settings_essential_rule_editor_delete_dialog_message">Are you sure you want to delete this rule?</string>
+
+    <string name="glyph_settings_essential_rule_application_summary">application</string>
+    <string name="glyph_settings_essential_rule_application_summary_plural">applications</string>
+
+    <string name="glyph_settings_essential_rule_keyword_summary">keyword</string>
+    <string name="glyph_settings_essential_rule_keyword_summary_plural">keywords</string>
+
+    <!-- App list -->
+    <string name="glyph_settings_app_list_search_hint">Search apps</string>
+    <string name="glyph_settings_app_list_title">Select applications</string>
+
+    <string name="glyph_settings_menu_done_button_title">Done</string>
     
 
     <!-- Utilities -->

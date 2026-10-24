@@ -27,10 +27,12 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.SharedPreferences;
 import android.database.ContentObserver;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.Parcelable;
 import android.os.Process;
 import android.os.UserHandle;
 import android.os.UserManager;
@@ -42,8 +44,10 @@ import android.util.Log;
 
 import com.android.internal.util.ArrayUtils;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -77,7 +81,55 @@ public class NotificationService extends NotificationListenerService
     private final Map<String, Future<?>> pendingFutures = new HashMap<>();
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
+    private ObservableSet<String> essentials = new ObservableSet<>();
+
     private int SYNC_DELAY = 345;
+
+    public static class ObservableSet<T> extends LinkedHashSet<T> {
+        public interface Listener {
+            void onChanged(int size);
+        }
+
+        private Listener listener;
+
+        public void setListener(Listener l) {
+            listener = l;
+        }
+
+        private void notifyChanged() {
+            if (listener != null) listener.onChanged(size());
+        }
+
+        @Override
+        public boolean add(T t) {
+            boolean r = super.add(t);
+            if (r) notifyChanged();
+            return r;
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            boolean r = super.remove(o);
+            if (r) notifyChanged();
+            return r;
+        }
+
+        @Override
+        public void clear() {
+            boolean wasEmpty = isEmpty();
+            super.clear();
+            if (!wasEmpty) notifyChanged();
+        }
+
+        @Override
+        public boolean addAll(Collection<? extends T> c) {
+            boolean changed = false;
+            for (T t : c) changed |= super.add(t);
+            if (changed) notifyChanged();
+            return changed;
+        }
+    }
+
 
     @Override
     public void onCreate() {
@@ -96,6 +148,13 @@ public class NotificationService extends NotificationListenerService
         mSettingObserver.register(mContentResolver);
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         mSharedPreferences.registerOnSharedPreferenceChangeListener(this);
+        essentials.setListener(size -> {
+            if (size > 0) {
+                AnimationManager.playEssential();
+            } else {
+                AnimationManager.stopEssential();
+            }
+        });
         super.onCreate();
     }
 
@@ -112,6 +171,7 @@ public class NotificationService extends NotificationListenerService
         AnimationManager.stopEssential();
         mSharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
         mSettingObserver.unregister(mContentResolver);
+        essentials.setListener(null);
         thread.quit();
         super.onDestroy();
     }
@@ -210,15 +270,16 @@ public class NotificationService extends NotificationListenerService
             }, SYNC_DELAY);
         }
         
-        if (SettingsManager.isGlyphNotifsEnabled(packageName) &&
-                SettingsManager.isGlyphNotifsAppEssential(packageName)
+        if (SettingsManager.isGlyphNotifsEnabled(packageName)
+                && !Data.EssentialRule.getMatchingRules(new Data.EssentialRule.RuleContext(
+                        packageName, getAllText(sbn))).isEmpty()
                         && !sbn.isOngoing()
                         && !ArrayUtils.contains(Constants.APPS_TO_IGNORE, packageName)
                         && !ArrayUtils.contains(Constants.NOTIFS_TO_IGNORE, packageName + ":" + packageChannelID)
                         && (packageImportance >= NotificationManager.IMPORTANCE_DEFAULT || packageImportance == -1)
                         && (interruptionFilter <= NotificationManager.INTERRUPTION_FILTER_ALL || packageCanBypassDnd)
                         && mNotificationManager.isNotificationPolicyAccessGranted()) {
-            AnimationManager.playEssential();
+           essentials.add(sbn.getKey());
         }
     }
 
@@ -352,6 +413,8 @@ public class NotificationService extends NotificationListenerService
 
         Future<?> future = pendingFutures.remove(key);
         if (future != null) future.cancel(true);
+
+        essentials.remove(sbn.getKey());
         
         onNotificationUpdated();
     }
@@ -389,22 +452,60 @@ public class NotificationService extends NotificationListenerService
                         + " | channel id: " + packageChannelID
                         + " | importance: " + packageImportance
                         + " | can bypass dnd: " + packageCanBypassDnd);
-                if (SettingsManager.isGlyphNotifsAppEssential(packageName)
+                if (!Data.EssentialRule.getMatchingRules(new Data.EssentialRule.RuleContext(
+                        packageName, getAllText(sbn))).isEmpty()
                                 && !sbn.isOngoing()
                                 && !ArrayUtils.contains(Constants.APPS_TO_IGNORE, packageName)
                                 && !ArrayUtils.contains(Constants.NOTIFS_TO_IGNORE, packageName + ":" + packageChannelID)
                                 && (packageImportance >= NotificationManager.IMPORTANCE_DEFAULT || packageImportance == -1)
                                 && (interruptionFilter <= NotificationManager.INTERRUPTION_FILTER_ALL || packageCanBypassDnd)) {
                     if (DEBUG) Log.d(TAG, "onNotificationUpdated: found essential notification | package:" + packageName);
-                    playEssential = true;
+                    essentials.add(sbn.getKey());
                 }
             }
         }
-        if (playEssential) {
-            AnimationManager.playEssential();
-        } else {
-            AnimationManager.stopEssential();
+    }
+
+    private String getAllText(StatusBarNotification sbn) {
+        Bundle extras = sbn.getNotification().extras;
+        StringBuilder sb = new StringBuilder();
+
+        appendIfPresent(sb, extras.getCharSequence(Notification.EXTRA_TITLE));
+        appendIfPresent(sb, extras.getCharSequence(Notification.EXTRA_TEXT));
+        appendIfPresent(sb, extras.getCharSequence(Notification.EXTRA_SUB_TEXT));
+        appendIfPresent(sb, extras.getCharSequence(Notification.EXTRA_BIG_TEXT));
+
+        CharSequence[] lines = extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES);
+        if (lines != null) {
+            for (CharSequence line : lines) {
+                appendIfPresent(sb, line);
+            }
         }
+
+        Parcelable[] messages = extras.getParcelableArray(Notification.EXTRA_MESSAGES);
+        if (messages != null) {
+            for (Parcelable p : messages) {
+                if (!(p instanceof Bundle)) continue;
+                Bundle b = (Bundle) p;
+                CharSequence sender = b.getCharSequence("sender");
+                CharSequence text = b.getCharSequence("text");
+                if (text == null || text.isEmpty()) continue;
+
+                if (sender != null && !sender.isEmpty()) {
+                    appendIfPresent(sb, sender + ": " + text);
+                } else {
+                    appendIfPresent(sb, text);
+                }
+            }
+        }
+
+        return sb.toString();
+    }
+
+    private void appendIfPresent(StringBuilder sb, CharSequence cs) {
+        if (cs == null || cs.length() == 0) return;
+        if (sb.length() > 0) sb.append('\n');
+        sb.append(cs);
     }
 
     private class SettingObserver extends ContentObserver {
