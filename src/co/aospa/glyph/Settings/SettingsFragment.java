@@ -433,7 +433,8 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
 
     @Override
     public boolean onPreferenceTreeClick(Preference preference) {
-        if (Constants.GLYPH_NOTIFS_ENABLE.equals(preference.getKey())) {
+        if (Constants.GLYPH_NOTIFS_ENABLE.equals(preference.getKey())
+                || Constants.Essential.GLYPH_ESSENTIAL_NOTIFICATIONS.equals(preference.getKey())) {
             if (!checkNotificationService(true, preference, true)) return true;
         }
         return super.onPreferenceTreeClick(preference);
