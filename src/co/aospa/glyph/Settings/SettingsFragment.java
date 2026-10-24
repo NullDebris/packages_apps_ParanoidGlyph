@@ -68,6 +68,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import co.aospa.glyph.Utils.FileUtils;
+import co.aospa.glyph.Utils.InterfaceUtils;
 import co.aospa.glyph.Utils.ResourceUtils;
 import co.aospa.glyph.Utils.ServiceUtils;
 
@@ -380,23 +381,11 @@ public class SettingsFragment extends SettingsBasePreferenceFragment implements 
         return true;
     }
 
-    private List<Preference> getAllPreferences(PreferenceGroup group) {
-        List<Preference> preferences = new ArrayList<>();
-        for (int i = 0; i < group.getPreferenceCount(); i++) {
-            Preference pref = group.getPreference(i);
-            preferences.add(pref);
-            if (pref instanceof PreferenceGroup) {
-                preferences.addAll(getAllPreferences((PreferenceGroup) pref));
-            }
-        }
-        return preferences;
-    }
-
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         SettingsManager.enableGlyph(isChecked);
 
-        List<Preference> allPrefs = getAllPreferences(getPreferenceScreen());
+        List<Preference> allPrefs = InterfaceUtils.Preferences.getAllPreferences(getPreferenceScreen());
 
         for (Preference pref : allPrefs) {
 

@@ -6,10 +6,12 @@ import androidx.appcompat.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import androidx.preference.Preference;
+import androidx.preference.PreferenceGroup;
 import androidx.preference.PreferenceManager;
 import android.view.View;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -131,6 +133,22 @@ public class InterfaceUtils {
                                       List<String> entries, List<String> values, Runnable afterDismiss) {
         showMultiPickerDialog(context, preference,
                 entries.toArray(new String[0]), values.toArray(new String[0]), afterDismiss);
+    }
+
+
+    public class Preferences {
+
+        public static List<Preference> getAllPreferences(PreferenceGroup group) {
+            List<Preference> preferences = new ArrayList<>();
+            for (int i = 0; i < group.getPreferenceCount(); i++) {
+                Preference pref = group.getPreference(i);
+                preferences.add(pref);
+                if (pref instanceof PreferenceGroup) {
+                    preferences.addAll(getAllPreferences((PreferenceGroup) pref));
+                }
+            }
+            return preferences;
+        }
     }
 
 
