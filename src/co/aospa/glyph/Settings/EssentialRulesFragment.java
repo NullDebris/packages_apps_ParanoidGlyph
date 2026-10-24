@@ -12,7 +12,6 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 import androidx.core.view.MenuItemCompat;
 import androidx.core.view.MenuProvider;
 import androidx.lifecycle.Lifecycle;

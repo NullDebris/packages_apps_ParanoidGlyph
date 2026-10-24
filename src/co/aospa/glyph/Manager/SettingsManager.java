@@ -17,12 +17,9 @@
 package co.aospa.glyph.Manager;
 
 import android.app.ActivityManager;
-import android.app.NotificationChannel;
 import android.content.Context;
-import android.content.ContentResolver;
 import android.media.AudioManager;
 import android.provider.Settings;
-import android.util.Log;
 
 import androidx.preference.PreferenceManager;
 
@@ -34,7 +31,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import co.aospa.glyph.Constants.Constants;
