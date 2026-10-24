@@ -373,13 +373,6 @@ public final class SettingsManager {
                 .getBoolean(Constants.GLYPH_NOTIFS_REVERSE_ANIMATION_ENABLE, false);
     }
 
-    public static boolean isGlyphNotifsAppEssential(String app) {
-        Context ctx = getContext();
-        return ctx.getSharedPreferences(Constants.GLYPH_NOTIF_APP_PREF_PREFIX + app,
-                        Context.MODE_PRIVATE)
-                .getBoolean(Constants.GLYPH_NOTIFS_SUB_ESSENTIAL, false);
-    }
-
     public static boolean isGlyphAutoBrightnessEnabled() {
         Context ctx = getContext();
         return !ResourceUtils.getString("glyph_light_sensor").isBlank() 

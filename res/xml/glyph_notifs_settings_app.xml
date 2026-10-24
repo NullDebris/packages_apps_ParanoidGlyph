@@ -41,13 +41,6 @@
         android:summary="@string/glyph_settings_animations_live_preview_summary" />
 
     <SwitchPreferenceCompat
-        android:key="glyph_settings_notifs_sub_essential"
-        android:icon="@drawable/ic_stack_star"
-        android:title="@string/glyph_settings_notifs_sub_essential_title"
-        android:summary="@string/glyph_settings_notifs_sub_essential_summary"
-        android:defaultValue="false" />
-
-    <SwitchPreferenceCompat
         android:key="glyph_settings_notifs_sub_animations_reverse_toggle"
         android:icon="@drawable/ic_rewind"
         android:title="@string/glyph_settings_sub_animations_reverse_toggle_title"
