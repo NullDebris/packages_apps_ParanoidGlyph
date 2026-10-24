@@ -31,6 +31,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import co.aospa.glyph.Manager.SettingsManager;
@@ -81,7 +82,7 @@ public class Data {
             ctx.getApplicationContext().registerReceiver(receiver, filter, null, backgroundHandler);
 
             backgroundHandler.post(() -> {
-                updatePending.compareAndSet(false, true);
+                updatePending.set(true);
 
                 PackageManager pm = ctx.getPackageManager();
                 List<PackageInfo> allApps = pm.getInstalledPackages(PackageManager.GET_PERMISSIONS);
@@ -194,7 +195,7 @@ public class Data {
         }
 
         public static void fillPackageInfo(Context ctx, String pkg) throws PackageManager.NameNotFoundException {
-            updatePending.compareAndSet(false,true);
+            updatePending.set(true);
 
             PackageManager pm = ctx.getPackageManager();
             PackageInfo pkgInfo = pm.getPackageInfo(pkg, PackageManager.GET_PERMISSIONS);
@@ -204,7 +205,7 @@ public class Data {
             Drawable icon = null;
             boolean canManageOwnCalls = false;
             boolean canUseMic = false;
-            boolean canBindMedia = false ;
+            boolean canBindMedia = false;
             boolean canNotify = false;
             String label = info.loadLabel(pm).toString();
 
@@ -251,105 +252,62 @@ public class Data {
         }
 
         public static class Notification {
-            public static void setData(Context ctx, String pkg,
-                                                   List<NotificationChannel> channels,
-                                                   List<NotificationChannelGroup> channelGroups) {
-                updatePending.compareAndSet(false, true);
-                if (appDataCache.isEmpty()) init(ctx);
-                if (!appDataCache.containsKey(pkg)) {
-                    try {
-                        fillPackageInfo(ctx, pkg);
-                    } catch (PackageManager.NameNotFoundException e) {
-                        Log.w(TAG, "Channels found but application cannot be found");
+
+            private static void tryToFillPkg(Context ctx, String pkg, Consumer<ApplicationData> action) {
+                updatePending.set(true);
+                try {
+                    if (appDataCache.isEmpty()) init(ctx);
+                    if (!appDataCache.containsKey(pkg)) {
+                        try {
+                            fillPackageInfo(ctx, pkg);
+                        } catch (PackageManager.NameNotFoundException e) {
+                            Log.w(TAG, "Data found but application cannot be found: " + pkg);
+                            return;
+                        }
+                    }
+                    ApplicationData data = appDataCache.get(pkg);
+                    if (data == null) {
+                        Log.w(TAG, "Data found but application is excluded from cache: " + pkg);
                         return;
                     }
-                    Log.w(TAG, "Channels found but application is excluded from cache");
-                    return;
-                } else {
-                    appDataCache.get(pkg).channelGroups.addAll(channelGroups);
-                    appDataCache.get(pkg).channels.addAll(channels);
+                    action.accept(data);
+                } finally {
+                    updatePending.set(false);
                 }
-                updatePending.compareAndSet(true, false);
+            }
+
+            public static void setData(Context ctx, String pkg,
+                                       List<NotificationChannel> channels,
+                                       List<NotificationChannelGroup> channelGroups) {
+                tryToFillPkg(ctx, pkg, d -> {
+                    d.channels.clear();
+                    d.channels.addAll(channels);
+                    d.channelGroups.clear();
+                    d.channelGroups.addAll(channelGroups);
+                });
             }
 
             public static void addChannel(Context ctx, String pkg, NotificationChannel channel) {
-                updatePending.compareAndSet(false, true);
-                if (appDataCache.isEmpty()) init(ctx);
-                if (!appDataCache.containsKey(pkg)) {
-                    try {
-                        fillPackageInfo(ctx, pkg);
-                    } catch (PackageManager.NameNotFoundException e) {
-                        Log.w(TAG, "Channel found but application cannot be found");
-                        return;
-                    }
-                    Log.w(TAG, "Channel found but application is excluded from cache");
-                    return;
-                } else {
-                    appDataCache.get(pkg).channels.add(channel);
-                }
-                updatePending.compareAndSet(true, false);
+                tryToFillPkg(ctx, pkg, d -> d.channels.add(channel));
             }
 
-            public static void addChannelGroup(Context ctx, String pkg, NotificationChannelGroup channelGroup) {
-                updatePending.compareAndSet(false, true);
-                if (appDataCache.isEmpty()) init(ctx);
-                if (!appDataCache.containsKey(pkg)) {
-                    try {
-                        fillPackageInfo(ctx, pkg);
-                    } catch (PackageManager.NameNotFoundException e) {
-                        Log.w(TAG, "Channel found but application cannot be found");
-                        return;
-                    }
-                    Log.w(TAG, "Channel found but application is excluded from cache");
-                    return;
-                } else {
-                    appDataCache.get(pkg).channelGroups.add(channelGroup);
-                }
-                updatePending.compareAndSet(true, false);
+            public static void addChannelGroup(Context ctx, String pkg, NotificationChannelGroup group) {
+                tryToFillPkg(ctx, pkg, d -> d.channelGroups.add(group));
             }
-
 
             public static void removeChannel(Context ctx, String pkg, NotificationChannel channel) {
-                updatePending.compareAndSet(false, true);
-                if (appDataCache.isEmpty()) init(ctx);
-                if (!appDataCache.containsKey(pkg)) {
-                    try {
-                        fillPackageInfo(ctx, pkg);
-                    } catch (PackageManager.NameNotFoundException e) {
-                        Log.w(TAG, "Channel found but application cannot be found");
-                        return;
-                    }
-                    Log.w(TAG, "Channel found but application is excluded from cache");
-                    return;
-                } else {
-                    appDataCache.get(pkg).channels.remove(channel);
-                }
-                updatePending.compareAndSet(true, false);
+                tryToFillPkg(ctx, pkg, d -> d.channels.remove(channel));
             }
 
-            public static void removeChannelGroup(Context ctx, String pkg, NotificationChannelGroup channelGroup) {
-                updatePending.compareAndSet(false, true);
-                if (appDataCache.isEmpty()) init(ctx);
-                if (!appDataCache.containsKey(pkg)) {
-                    try {
-                        fillPackageInfo(ctx, pkg);
-                    } catch (PackageManager.NameNotFoundException e) {
-                        Log.w(TAG, "Channel found but application cannot be found");
-                        return;
-                    }
-                    Log.w(TAG, "Channel found but application is excluded from cache");
-                    return;
-                } else {
-                    appDataCache.get(pkg).channelGroups.remove(channelGroup);
-                }
-                updatePending.compareAndSet(true, false);
+            public static void removeChannelGroup(Context ctx, String pkg, NotificationChannelGroup group) {
+                tryToFillPkg(ctx, pkg, d -> d.channelGroups.remove(group));
             }
+
         }
 
+    }
 
-    };
-
-    public static class PackageChangeReceiver extends BroadcastReceiver {
+    private static class PackageChangeReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             Uri data = intent.getData();
