@@ -301,7 +301,7 @@ public class NotificationService extends NotificationListenerService
     @Override
     public void onNotificationChannelModified(String pkg, UserHandle user,
                                               NotificationChannel channel, int modificationType) {
-        if (user != Process.myUserHandle()) return;
+        if (!Process.myUserHandle().equals(user)) return;
         switch (modificationType) {
             case NOTIFICATION_CHANNEL_OR_GROUP_ADDED -> {
                 Data.ApplicationData.Notification.addChannel(getApplicationContext(), pkg, channel);
@@ -315,7 +315,7 @@ public class NotificationService extends NotificationListenerService
     @Override
     public void onNotificationChannelGroupModified(String pkg, UserHandle user,
                                                    NotificationChannelGroup group, int modificationType) {
-        if (user != Process.myUserHandle()) return;
+        if (!Process.myUserHandle().equals(user)) return;
         switch (modificationType) {
             case NOTIFICATION_CHANNEL_OR_GROUP_ADDED -> {
                 Data.ApplicationData.Notification.addChannelGroup(getApplicationContext(), pkg, group);
