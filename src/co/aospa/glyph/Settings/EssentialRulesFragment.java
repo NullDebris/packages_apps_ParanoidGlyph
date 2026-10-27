@@ -48,7 +48,7 @@ public class EssentialRulesFragment extends SettingsBasePreferenceFragment {
 
         mCategory = new PreferenceCategory(context);
         mCategory.setKey("rules_category");
-        mCategory.setTitle("Rules");
+        mCategory.setTitle(getString(R.string.glyph_settings_essential_rules_category_title));
         mCategory.setOrderingAsAdded(false);
         mScreen.addPreference(mCategory);
         syncRules(Data.EssentialRule.getRules());

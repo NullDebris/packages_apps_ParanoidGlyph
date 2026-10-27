@@ -209,6 +209,7 @@
     <string name="notification_sound_changed_notification_title">Notification sound changed</string>
 
     <!-- Essential V2 (rules) -->
+    <string name="glyph_settings_essential_rules_category_title">Rules</string>
     <string name="glyph_settings_essential_rule_editor_title">Rule editor</string>
     <string name="glyph_settings_essential_rule_editor_name_title">Rule name</string>
     <string name="glyph_settings_essential_rule_editor_keywords_dialog_message">Separate each keyword with a comma</string>
