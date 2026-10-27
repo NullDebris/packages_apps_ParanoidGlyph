@@ -16,6 +16,7 @@
 
 package co.aospa.glyph.Services;
 
+import android.app.INotificationManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationChannelGroup;
@@ -23,9 +24,10 @@ import android.app.NotificationManager;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.content.SharedPreferences;
+import android.content.pm.ParceledListSlice;
 import android.database.ContentObserver;
 import android.os.Bundle;
 import android.os.Handler;
@@ -34,8 +36,9 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Parcelable;
 import android.os.Process;
+import android.os.RemoteException;
+import android.os.ServiceManager;
 import android.os.UserHandle;
-import android.os.UserManager;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.service.notification.NotificationListenerService;
@@ -44,10 +47,11 @@ import android.util.Log;
 
 import com.android.internal.util.ArrayUtils;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -283,18 +287,37 @@ public class NotificationService extends NotificationListenerService
         }
     }
 
+    private static INotificationManager getNm() {
+        return INotificationManager.Stub.asInterface(
+                ServiceManager.getService(Context.NOTIFICATION_SERVICE));
+    }
+
+    private  static void loadChannels(Context ctx, String pkg) {
+        try {
+            int uid = ctx.getPackageManager().getApplicationInfo(pkg, 0).uid;
+            INotificationManager nm = getNm();
+
+            ParceledListSlice<NotificationChannel> chSlice =
+                    nm.getNotificationChannelsForPackage(pkg, uid, false);
+            ParceledListSlice<NotificationChannelGroup> grpSlice =
+                    nm.getNotificationChannelGroupsForPackage(pkg, uid, false);
+
+            List<NotificationChannel> channels =
+                    chSlice != null ? chSlice.getList() : Collections.emptyList();
+            List<NotificationChannelGroup> groups =
+                    grpSlice != null ? grpSlice.getList() : Collections.emptyList();
+
+            Data.ApplicationData.Notification.setData(ctx, pkg, channels, groups);
+        } catch (RemoteException | PackageManager.NameNotFoundException | SecurityException e) {
+            Log.w(TAG, "Channel query failed for " + pkg, e);
+        }
+    }
+
     @Override
     public void onListenerConnected() {
-        UserHandle user = Process.myUserHandle();
         for (ApplicationInfo app : getPackageManager().getInstalledApplications(0)) {
             String pkg = app.packageName;
-            try {
-                Data.ApplicationData.Notification.setData(
-                        getApplicationContext(),
-                        pkg,
-                        getNotificationChannels(pkg, user),
-                        getNotificationChannelGroups(pkg, user));
-            } catch (SecurityException ignored) { }
+            loadChannels(getApplicationContext(), pkg);
         }
     }
 
