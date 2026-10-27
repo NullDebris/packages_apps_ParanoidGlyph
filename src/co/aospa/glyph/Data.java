@@ -308,7 +308,7 @@ public class Data {
             }
 
             public static void removeChannel(Context ctx, String pkg, NotificationChannel channel) {
-                tryToFillPkg(ctx, pkg, d -> d.channels.remove(channel));
+                tryToFillPkg(ctx, pkg, d -> d.channels.removeIf(c -> c.getId().equals(channel.getId())));
             }
 
             public static void removeChannelGroup(Context ctx, String pkg, NotificationChannelGroup group) {
