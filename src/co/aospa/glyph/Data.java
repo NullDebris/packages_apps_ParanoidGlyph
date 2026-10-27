@@ -178,7 +178,14 @@ public class Data {
 
         public static ApplicationData getApplication(Context ctx, String pkg) {
             if (appDataCache.isEmpty()) init(ctx);
-            return appDataCache.get(pkg);
+            ApplicationData d = appDataCache.get(pkg);
+            if (d == null) {
+                try {
+                    fillPackageInfo(ctx, pkg);
+                } catch (PackageManager.NameNotFoundException ignored) {}
+                d = appDataCache.get(pkg);
+            }
+            return d;
         }
 
         public static void remove(String pkg) {
