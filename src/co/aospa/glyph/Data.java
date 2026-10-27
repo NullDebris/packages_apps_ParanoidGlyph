@@ -19,15 +19,14 @@ import android.os.Looper;
 import android.util.Log;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
@@ -62,7 +61,8 @@ public class Data {
             boolean canBindMedia,
             boolean canNotify) {
 
-        private static final Map<String, ApplicationData> appDataCache = new HashMap<>();
+        private static final ConcurrentHashMap<String, ApplicationData> appDataCache
+                = new ConcurrentHashMap<>();
 
         static final AtomicBoolean updatePending = new AtomicBoolean(false);
 
@@ -126,11 +126,11 @@ public class Data {
                         canNotify = true;
                     }
 
-                    appDataCache.put(pkgName, new ApplicationData(
+                    appDataCache.putIfAbsent(pkgName, new ApplicationData(
                             label,
                             icon,
-                            Collections.emptyList(),
-                            Collections.emptyList(),
+                            new CopyOnWriteArrayList<NotificationChannel>(),
+                            new CopyOnWriteArrayList<NotificationChannelGroup>(),
                             canManageOwnCalls,
                             canUseMic,
                             canBindMedia,
