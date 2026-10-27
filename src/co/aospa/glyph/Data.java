@@ -3,6 +3,7 @@ package co.aospa.glyph;
 import android.Manifest;
 import android.app.NotificationChannel;
 import android.app.NotificationChannelGroup;
+import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -314,6 +315,31 @@ public class Data {
 
             public static void removeChannelGroup(Context ctx, String pkg, NotificationChannelGroup group) {
                 tryToFillPkg(ctx, pkg, d -> d.channelGroups.remove(group));
+            }
+
+
+            public static NotificationChannel getChannel(Context ctx, String pkg, String channelId) {
+                return getApplication(ctx, pkg)
+                        .channels()
+                        .stream()
+                        .filter(ch -> ch.getId().equals(channelId))
+                        .findFirst().orElse(new NotificationChannel("0", "", NotificationManager.IMPORTANCE_NONE));
+            }
+
+            public static NotificationChannelGroup getChannelGroup(Context ctx, String pkg, String groupId) {
+                return getApplication(ctx, pkg)
+                        .channelGroups()
+                        .stream()
+                        .filter(chg -> chg.getId().equals(groupId))
+                        .findFirst().orElse(new NotificationChannelGroup("0", ""));
+            }
+
+            public static String getChannelName(Context ctx, String pkg, String channelId) {
+                return (String) getChannel(ctx, pkg, channelId).getName();
+            }
+
+            public static String getChannelGroupName(Context ctx, String pkg, String groupId) {
+                return (String) getChannelGroup(ctx, pkg, groupId).getName();
             }
 
         }
