@@ -282,7 +282,7 @@ public class AnimationSettingsFragment
                             + targetPkg);
                     addPreferencesFromResource(R.xml.glyph_call_settings_app);
                     mScreen = getPreferenceScreen();
-                    String pkgLabel = getPackageLabel(targetPkg);
+                    String pkgLabel = Data.ApplicationData.getApplication(requireContext(), targetPkg).label();
                     fragmentTitle
                             = requireContext().getString(R.string.glyph_settings_call_toggle_title)
                             + " (" + pkgLabel + ")";
@@ -591,15 +591,6 @@ public class AnimationSettingsFragment
        resolveAppSummary(pref, pkg, null);
     }
 
-    private String getPackageLabel(String packageName) {
-        try {
-            ApplicationInfo info = mPackageManager
-                    .getApplicationInfo(packageName, 0);
-            return mPackageManager.getApplicationLabel(info).toString();
-        } catch (PackageManager.NameNotFoundException e) {
-            return packageName; // fall back to package name if not found
-        }
-    }
 
     private String getDefaultDialer() {
         String packageName = "";
