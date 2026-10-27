@@ -246,11 +246,12 @@ public class Data {
                 canNotify = true;
             }
 
+            ApplicationData existing = appDataCache.get(pkgName);
             appDataCache.put(pkgName, new ApplicationData(
                     label,
                     icon,
-                    Collections.emptyList(),
-                    Collections.emptyList(),
+                    existing != null ? existing.channels() : new CopyOnWriteArrayList<>(),
+                    existing != null ? existing.channelGroups() : new CopyOnWriteArrayList<>(),
                     canManageOwnCalls,
                     canUseMic,
                     canBindMedia,
