@@ -296,8 +296,11 @@ public class Data {
                 });
             }
 
-            public static void addChannel(Context ctx, String pkg, NotificationChannel channel) {
-                tryToFillPkg(ctx, pkg, d -> d.channels.add(channel));
+            public static void updateChannel(Context ctx, String pkg, NotificationChannel channel) {
+                tryToFillPkg(ctx, pkg, d -> {
+                    d.channels.removeIf(c -> c.getId().equals(channel.getId()));
+                    d.channels.add(channel);
+                });
             }
 
             public static void addChannelGroup(Context ctx, String pkg, NotificationChannelGroup group) {

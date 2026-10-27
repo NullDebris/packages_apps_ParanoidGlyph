@@ -303,8 +303,8 @@ public class NotificationService extends NotificationListenerService
                                               NotificationChannel channel, int modificationType) {
         if (!Process.myUserHandle().equals(user)) return;
         switch (modificationType) {
-            case NOTIFICATION_CHANNEL_OR_GROUP_ADDED -> {
-                Data.ApplicationData.Notification.addChannel(getApplicationContext(), pkg, channel);
+            case NOTIFICATION_CHANNEL_OR_GROUP_ADDED, NOTIFICATION_CHANNEL_OR_GROUP_UPDATED -> {
+                Data.ApplicationData.Notification.updateChannel(getApplicationContext(), pkg, channel);
             }
             case NOTIFICATION_CHANNEL_OR_GROUP_DELETED -> {
                 Data.ApplicationData.Notification.removeChannel(getApplicationContext(), pkg, channel);
