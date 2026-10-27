@@ -54,6 +54,14 @@ public final class SettingsManager {
         return context;
     }
 
+    public static String buildAppNotifsPrefName(String pkg) {
+        return Constants.GLYPH_NOTIF_APP_PREF_PREFIX + pkg;
+    }
+
+    public static String buildAppChannelPrefName(String pkg, String channelId) {
+        return buildAppNotifsPrefName(pkg) + "_" + channelId;
+    }
+
     public static boolean enableGlyph(boolean enable) {
         Context ctx = getContext();
         PreferenceManager.getDefaultSharedPreferences(ctx).edit()
