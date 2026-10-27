@@ -10,6 +10,8 @@ import co.aospa.glyph.Constants.Constants;
 
 public class SubSettingsActivity extends CollapsingToolbarBaseActivity {
 
+    public static final String ARGS_FRAGMENT = "fragment";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,7 +22,10 @@ public class SubSettingsActivity extends CollapsingToolbarBaseActivity {
 
         super.onCreate(savedInstanceState);
         if (savedInstanceState == null) {
-            String fragmentClass = getIntent().getStringExtra("fragment");
+            String fragmentClass = getIntent().getStringExtra(ARGS_FRAGMENT);
+            if (fragmentClass == null) {
+                finish();
+            }
             if (fragmentClass.startsWith(".")) {
                 fragmentClass = getPackageName() + fragmentClass;
             }
