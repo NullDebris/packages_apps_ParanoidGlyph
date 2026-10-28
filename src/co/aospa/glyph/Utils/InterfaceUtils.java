@@ -6,8 +6,11 @@ import androidx.appcompat.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import androidx.preference.Preference;
+import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceGroup;
+import androidx.preference.PreferenceScreen;
 import androidx.preference.PreferenceManager;
+
 import android.view.View;
 import android.widget.Toast;
 
@@ -148,6 +151,14 @@ public class InterfaceUtils {
                 }
             }
             return preferences;
+        }
+
+        public static List<Preference> getAllPreferences(PreferenceScreen screen) {
+            return getAllPreferences((PreferenceGroup) screen);
+        }
+
+        public static List<Preference> getAllPreferences(PreferenceCategory category) {
+            return getAllPreferences((PreferenceGroup) category);
         }
     }
 
