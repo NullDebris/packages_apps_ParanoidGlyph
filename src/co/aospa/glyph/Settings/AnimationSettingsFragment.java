@@ -211,17 +211,21 @@ public class AnimationSettingsFragment
                                 getParentFragmentManager().popBackStack();
                                 return;
                             }
+                            addPreferencesFromResource(R.xml.glyph_notifs_settings_app);
+                            mScreen = getPreferenceScreen();
                             fragmentTitle = channelName + " (" + pkgLabel + ")";
+                            StringBuilder deleteMsg = new StringBuilder();
+                            deleteMsg.append(pkgLabel).append(" (").append(channelName).append(")");
+                            addDeletePref(prefName, deleteMsg.toString());
                     } else {
                         prefName = SettingsManager.buildAppNotifsPrefName(targetPkg);
                             getPreferenceManager().setSharedPreferencesName(prefName);
                             fragmentTitle =
                                     requireContext().getString(R.string.glyph_settings_notifs_toggle_title)
                                     + " (" + pkgLabel + ")";
+                        addPreferencesFromResource(R.xml.glyph_notifs_settings_app);
+                        mScreen = getPreferenceScreen();
                     }
-                    addPreferencesFromResource(R.xml.glyph_notifs_settings_app);
-                    mScreen = getPreferenceScreen();
-                    addDeletePref(prefName, pkgLabel);
                 }
 
                 enableKey = Constants.GLYPH_NOTIFS_SUB_ENABLE;
