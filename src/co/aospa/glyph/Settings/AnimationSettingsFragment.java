@@ -80,6 +80,7 @@ public class AnimationSettingsFragment
     private String fragmentType = null;
     private String targetPkg = null;
     private String notificationChannelId = null;
+    private String notificationChannelName = "";
 
     PackageManager mPackageManager;
 
@@ -205,20 +206,20 @@ public class AnimationSettingsFragment
                     if (isChannelSpecific) {
                         prefName = SettingsManager.buildAppChannelPrefName(targetPkg, notificationChannelId);
                             getPreferenceManager().setSharedPreferencesName(prefName);
-                            String channelName = Data.ApplicationData.Notification.getChannelName(
+                            notificationChannelName = Data.ApplicationData.Notification.getChannelName(
                                     requireContext(),
                                     targetPkg,
                                     notificationChannelId
                             );
-                            if (channelName.isEmpty()) {
+                            if (notificationChannelName.isEmpty()) {
                                 getParentFragmentManager().popBackStack();
                                 return;
                             }
                             addPreferencesFromResource(R.xml.glyph_notifs_settings_app);
                             mScreen = getPreferenceScreen();
-                            fragmentTitle = channelName + " (" + pkgLabel + ")";
+                            fragmentTitle = requireContext().getString(R.string.glyph_settings_notifs_toggle_title);
                             StringBuilder deleteMsg = new StringBuilder();
-                            deleteMsg.append(pkgLabel).append(" (").append(channelName).append(")");
+                            deleteMsg.append(pkgLabel).append(" (").append(notificationChannelName).append(")");
                             addDeletePref(prefName, deleteMsg.toString());
                     } else {
                         prefName = SettingsManager.buildAppNotifsPrefName(targetPkg);
@@ -361,8 +362,13 @@ public class AnimationSettingsFragment
             } else {
                 mSwitchBar.setChecked(isAnimationEnabled());
             }
-        }
 
+            if (isChannelSpecific) {
+                String pkgLabel =
+                        Data.ApplicationData.getApplication(requireContext(), targetPkg).label();
+                mSwitchBar.setSummary(pkgLabel + " | "  + notificationChannelName);
+            }
+        }
         mListPreference = findPreference(animationListKey);
         mListPreference.setOnPreferenceChangeListener(this);
 
