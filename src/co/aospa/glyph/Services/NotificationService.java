@@ -234,17 +234,32 @@ public class NotificationService extends NotificationListenerService
             String notifKey = sbn.getKey();
             Runnable runnable = () -> {
                 if (SettingsManager.appHasGlyphNotifsConfig(packageName)) {
-                    if (SettingsManager.isGlyphNotifsAnimationReversed(packageName)) {
-                        AnimationManager.playCsvReverse(
-                                mContext,
-                                SettingsManager.getGlyphNotifsAnimation(packageName))
-                        ;
-                    } else {
-                        AnimationManager.playCsv(
-                                mContext,
-                                SettingsManager.getGlyphNotifsAnimation(packageName)
-                        );
-                    }
+                        if (SettingsManager.Notification.isGlobalAppAnimationEnabled(packageName)) {
+                            if (SettingsManager.isGlyphNotifsAnimationReversed(packageName)) {
+                                AnimationManager.playCsvReverse(
+                                        mContext,
+                                        SettingsManager.getGlyphNotifsAnimation(packageName))
+                                ;
+                            } else {
+                                AnimationManager.playCsv(
+                                        mContext,
+                                        SettingsManager.getGlyphNotifsAnimation(packageName)
+                                );
+                            }
+                        } else if (SettingsManager.Notification.channelHasGlyphNotifsConfig(
+                                packageName, packageChannelID)) {
+                            if (SettingsManager.Notification.isChannelAnimationEnabled(packageName, packageChannelID)) {
+                                if (SettingsManager.Notification.isChannelAnimationReversed(packageName, packageChannelID)) {
+                                    AnimationManager.playCsvReverse(
+                                            mContext,
+                                            SettingsManager.Notification.getChannelAnimation(packageName, packageChannelID));
+                                } else {
+                                    AnimationManager.playCsv(
+                                            mContext,
+                                            SettingsManager.Notification.getChannelAnimation(packageName, packageChannelID));
+                                }
+                            }
+                        }
                 } else {
                     if (SettingsManager.isGlyphNotifsSyncEnabled()
                             && AnimationUtils.Holder.Notification.isAvailable()) {

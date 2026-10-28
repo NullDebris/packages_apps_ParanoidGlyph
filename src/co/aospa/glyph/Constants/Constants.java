@@ -112,6 +112,8 @@ public final class Constants {
     public static final String GLYPH_UTILITIES_READ_OGG = "glyph_utilities_read_ogg";
     public static final String GLYPH_UTILITIES_OGG_EXPORT_CSV = "glyph_utilities_export_csv_from_ogg";
 
+    public static final String GLYPH_NOTIFS_APP_GLOBAL_ANIMATION_ENABLE = "glyph_settings_notifications_global_animation";
+
     public static class Essential {
         public static final String GLYPH_ESSENTIAL_NOTIFICATIONS = "glyph_settings_essential_notifications";
 

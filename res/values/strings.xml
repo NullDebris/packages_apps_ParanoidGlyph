@@ -111,6 +111,9 @@
 
     <string name="glyph_settings_notifs_additional_hint">New CSV animations can placed in /sdcard/Glyph/Notifications</string>
 
+    <string name="glyph_settings_notifs_global_animation_toggle_title">Use global animation</string>
+    <string name="glyph_settings_notifs_global_animation_toggle_summary">When enabled, use the selected animation for all notification channels</string>
+
     <string name="glyph_settings_sub_animations_reverse_toggle_title">Reverse animation</string>
     <string name="glyph_settings_sub_animations_reverse_toggle_summary">Play animation from end to beginning</string>
 
