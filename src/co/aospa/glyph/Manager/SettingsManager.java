@@ -483,6 +483,12 @@ public final class SettingsManager {
                     .getBoolean(Constants.GLYPH_NOTIFS_APP_GLOBAL_ANIMATION_ENABLE, true);
         }
 
+        public static boolean channelNotifsConfigExists(String pkg, String channelId) {
+            Context ctx = getContext();
+            return !ctx.getSharedPreferences(buildAppChannelPrefName(pkg, channelId), Context.MODE_PRIVATE)
+                    .getAll().isEmpty();
+        }
+
         public static boolean channelHasGlyphNotifsConfig(String pkg, String channelId) {
             Context ctx = getContext();
             return !ctx.getSharedPreferences(

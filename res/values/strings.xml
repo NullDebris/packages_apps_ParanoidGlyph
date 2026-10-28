@@ -114,6 +114,9 @@
     <string name="glyph_settings_notifs_global_animation_toggle_title">Use global animation</string>
     <string name="glyph_settings_notifs_global_animation_toggle_summary">When enabled, use the selected animation for all notification channels</string>
 
+    <string name="glyph_settings_notif_app_channel_count_summary">channel configured</string>
+    <string name="glyph_settings_notif_app_channel_count_summary_plural">channels configured</string>
+
     <string name="glyph_settings_sub_animations_reverse_toggle_title">Reverse animation</string>
     <string name="glyph_settings_sub_animations_reverse_toggle_summary">Play animation from end to beginning</string>
 

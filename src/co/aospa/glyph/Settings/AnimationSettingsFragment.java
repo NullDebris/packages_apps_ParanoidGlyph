@@ -619,7 +619,26 @@ public class AnimationSettingsFragment
     private void resolveAppSummary(PrimarySwitchPreference pref, String pkg, String comp) {
         boolean isReversed = isAppAnimationReversed(pkg);
         boolean hasConfig = comp == null ? appHasConfig(pkg) : appHasConfig(pkg, comp);
-        if (hasConfig) {
+        boolean useChannelConfig = fragmentType.equals(FRAGMENT_TYPE_NOTIF)
+                && !SettingsManager.Notification.isGlobalAppAnimationEnabled(pkg);
+        if (useChannelConfig) {
+            long count = Data.ApplicationData.getApplication(requireContext(), pkg).channels()
+                    .stream()
+                    .filter(c -> SettingsManager.Notification.channelNotifsConfigExists(pkg, c.getId()))
+                    .count();
+            StringBuilder summary = new StringBuilder();
+            summary.append(" ").append(count).append(" ");
+            if (count == 1) {
+                summary.append(getString(R.string.glyph_settings_notif_app_channel_count_summary));
+            } else if (count > 1) {
+                summary.append(getString(R.string.glyph_settings_notif_app_channel_count_summary_plural));
+            }
+            if (count > 0) {
+                pref.setSummary(summary.toString());
+            } else {
+                pref.setSummary(null);
+            }
+        } else if (hasConfig) {
             if (isReversed) {
                 pref.setSummary(" " + getGlyphAnimation(pkg, false)
                         + " (" + getString(R.string.glyph_settings_animation_is_reversed) + ")");
