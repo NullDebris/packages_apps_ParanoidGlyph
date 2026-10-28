@@ -224,68 +224,15 @@ public class NotificationService extends NotificationListenerService
                 + " | channel id: " + packageChannelID
                 + " | importance: " + packageImportance
                 + " | can bypass dnd: " + packageCanBypassDnd);
-        
-        if (SettingsManager.isGlyphNotifsEnabled(packageName)
-                        && !sbn.isOngoing() 
-                        && !ArrayUtils.contains(Constants.APPS_TO_IGNORE, packageName)
-                        && !ArrayUtils.contains(Constants.NOTIFS_TO_IGNORE, packageName + ":" + packageChannelID)
-                        && (packageImportance >= NotificationManager.IMPORTANCE_DEFAULT || packageImportance == -1)
-                        && (interruptionFilter <= NotificationManager.INTERRUPTION_FILTER_ALL || packageCanBypassDnd)) {
+
+        if (shouldPlayGlyph(sbn, packageName, packageChannelID,
+                packageImportance, interruptionFilter, packageCanBypassDnd)) {
             String notifKey = sbn.getKey();
-            Runnable runnable = () -> {
-                if (SettingsManager.appHasGlyphNotifsConfig(packageName)) {
-                        if (SettingsManager.Notification.isGlobalAppAnimationEnabled(packageName)) {
-                            if (SettingsManager.isGlyphNotifsAnimationReversed(packageName)) {
-                                AnimationManager.playCsvReverse(
-                                        mContext,
-                                        SettingsManager.getGlyphNotifsAnimation(packageName))
-                                ;
-                            } else {
-                                AnimationManager.playCsv(
-                                        mContext,
-                                        SettingsManager.getGlyphNotifsAnimation(packageName)
-                                );
-                            }
-                        } else if (SettingsManager.Notification.channelHasGlyphNotifsConfig(
-                                packageName, packageChannelID)) {
-                            if (SettingsManager.Notification.isChannelAnimationEnabled(packageName, packageChannelID)) {
-                                if (SettingsManager.Notification.isChannelAnimationReversed(packageName, packageChannelID)) {
-                                    AnimationManager.playCsvReverse(
-                                            mContext,
-                                            SettingsManager.Notification.getChannelAnimation(packageName, packageChannelID));
-                                } else {
-                                    AnimationManager.playCsv(
-                                            mContext,
-                                            SettingsManager.Notification.getChannelAnimation(packageName, packageChannelID));
-                                }
-                            }
-                        }
-                } else {
-                    if (SettingsManager.isGlyphNotifsSyncEnabled()
-                            && AnimationUtils.Holder.Notification.isAvailable()) {
-                        AnimationManager.playExternalCsv(
-                                AnimationUtils.Holder.Notification.getCsv(),
-                                "notification"
-                        );
-                    } else {
-                        if (SettingsManager.isGlyphNotifsAnimationReversed()) {
-                            AnimationManager.playCsvReverse(
-                                    mContext,
-                                    SettingsManager.getGlyphNotifsAnimation()
-                            );
-                        } else {
-                            AnimationManager.playCsv(
-                                    mContext,
-                                    SettingsManager.getGlyphNotifsAnimation()
-                            );
-                        }
-                    }
-                }
-            };
+            Runnable runnable = () -> playNotificationGlyph(packageName, packageChannelID);
+
             pendingCallbacks.put(notifKey, runnable);
             mThreadHandler.postDelayed(() -> {
-                Future<?> future = executor.submit(runnable);
-                pendingFutures.put(notifKey, future);
+                pendingFutures.put(notifKey, executor.submit(runnable));
             }, SYNC_DELAY);
         }
         
@@ -293,12 +240,77 @@ public class NotificationService extends NotificationListenerService
                 && !Data.EssentialRule.getMatchingRules(new Data.EssentialRule.RuleContext(
                         packageName, getAllText(sbn))).isEmpty()
                         && !sbn.isOngoing()
-                        && !ArrayUtils.contains(Constants.APPS_TO_IGNORE, packageName)
-                        && !ArrayUtils.contains(Constants.NOTIFS_TO_IGNORE, packageName + ":" + packageChannelID)
-                        && (packageImportance >= NotificationManager.IMPORTANCE_DEFAULT || packageImportance == -1)
-                        && (interruptionFilter <= NotificationManager.INTERRUPTION_FILTER_ALL || packageCanBypassDnd)
+                        && !isIgnored(packageName, packageChannelID)
+                        && isImportantEnough(packageImportance)
+                        && isAllowedByDnd(interruptionFilter, packageCanBypassDnd)
                         && mNotificationManager.isNotificationPolicyAccessGranted()) {
            essentials.add(sbn.getKey());
+        }
+    }
+
+    private boolean shouldPlayGlyph(StatusBarNotification sbn, String packageName,
+                                    String packageChannelID, int packageImportance,
+                                    int interruptionFilter, boolean packageCanBypassDnd) {
+        if (!SettingsManager.isGlyphNotifsEnabled(packageName) || sbn.isOngoing()) return false;
+        if (isIgnored(packageName, packageChannelID)) return false;
+        return isImportantEnough(packageImportance)
+                && isAllowedByDnd(interruptionFilter, packageCanBypassDnd);
+    }
+
+    private boolean isIgnored(String packageName, String channelId) {
+        return ArrayUtils.contains(Constants.APPS_TO_IGNORE, packageName)
+                || ArrayUtils.contains(Constants.NOTIFS_TO_IGNORE, packageName + ":" + channelId);
+    }
+
+    private boolean isImportantEnough(int importance) {
+        return importance == -1 || importance >= NotificationManager.IMPORTANCE_DEFAULT;
+    }
+
+    private boolean isAllowedByDnd(int interruptionFilter, boolean canBypassDnd) {
+        return interruptionFilter <= NotificationManager.INTERRUPTION_FILTER_ALL || canBypassDnd;
+    }
+
+    private void playNotificationGlyph(String packageName, String channelId) {
+        if (SettingsManager.appHasGlyphNotifsConfig(packageName)) {
+            playAppConfigured(packageName, channelId);
+        } else {
+            playDefault();
+        }
+    }
+
+    private void playAppConfigured(String packageName, String channelId) {
+        if (SettingsManager.Notification.isGlobalAppAnimationEnabled(packageName)) {
+            playAnimation(
+                    SettingsManager.getGlyphNotifsAnimation(packageName),
+                    SettingsManager.isGlyphNotifsAnimationReversed(packageName));
+            return;
+        }
+        if (!SettingsManager.Notification.channelHasGlyphNotifsConfig(packageName, channelId)
+                || !SettingsManager.Notification.isChannelAnimationEnabled(packageName, channelId)) {
+            return;
+        }
+        playAnimation(
+                SettingsManager.Notification.getChannelAnimation(packageName, channelId),
+                SettingsManager.Notification.isChannelAnimationReversed(packageName, channelId));
+    }
+
+    private void playDefault() {
+        if (SettingsManager.isGlyphNotifsSyncEnabled()
+                && AnimationUtils.Holder.Notification.isAvailable()) {
+            AnimationManager.playExternalCsv(
+                    AnimationUtils.Holder.Notification.getCsv(), "notification");
+            return;
+        }
+        playAnimation(
+                SettingsManager.getGlyphNotifsAnimation(),
+                SettingsManager.isGlyphNotifsAnimationReversed());
+    }
+
+    private void playAnimation(String animation, boolean reversed) {
+        if (reversed) {
+            AnimationManager.playCsvReverse(mContext, animation);
+        } else {
+            AnimationManager.playCsv(mContext, animation);
         }
     }
 
@@ -492,11 +504,9 @@ public class NotificationService extends NotificationListenerService
                         + " | can bypass dnd: " + packageCanBypassDnd);
                 if (!Data.EssentialRule.getMatchingRules(new Data.EssentialRule.RuleContext(
                         packageName, getAllText(sbn))).isEmpty()
-                                && !sbn.isOngoing()
-                                && !ArrayUtils.contains(Constants.APPS_TO_IGNORE, packageName)
-                                && !ArrayUtils.contains(Constants.NOTIFS_TO_IGNORE, packageName + ":" + packageChannelID)
-                                && (packageImportance >= NotificationManager.IMPORTANCE_DEFAULT || packageImportance == -1)
-                                && (interruptionFilter <= NotificationManager.INTERRUPTION_FILTER_ALL || packageCanBypassDnd)) {
+                                && !sbn.isOngoing() && !isIgnored(packageName, packageChannelID)
+                                && isImportantEnough(packageImportance)
+                                && isAllowedByDnd(interruptionFilter, packageCanBypassDnd)) {
                     if (DEBUG) Log.d(TAG, "onNotificationUpdated: found essential notification | package:" + packageName);
                     essentials.add(sbn.getKey());
                 }
