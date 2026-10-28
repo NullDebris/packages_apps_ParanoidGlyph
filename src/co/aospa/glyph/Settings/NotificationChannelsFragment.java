@@ -12,7 +12,6 @@ import android.view.Gravity;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import androidx.preference.Preference;
 import androidx.preference.PreferenceCategory;
@@ -89,15 +88,6 @@ public class NotificationChannelsFragment extends SettingsBasePreferenceFragment
         ImageView icon = new ImageView(context);
         icon.setImageDrawable(Data.ApplicationData.getApplication(context, targetPkg).icon());
         root.addView(icon, new LinearLayout.LayoutParams((int) (48 * d), (int) (48 * d)));
-
-        TextView label = new TextView(context);
-        label.setText(appLabel);
-        label.setTextAppearance(android.R.style.TextAppearance_Material_Headline);
-        label.setGravity(Gravity.CENTER);
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        lp.topMargin = (int) (8 * d);
-        root.addView(label, lp);
 
         LayoutPreference pref = new LayoutPreference(context, root);
         pref.setKey("pref_app_header");
