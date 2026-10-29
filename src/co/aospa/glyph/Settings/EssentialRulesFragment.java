@@ -19,6 +19,7 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceScreen;
 
+import com.android.settingslib.widget.CardPreference;
 import com.android.settingslib.widget.SettingsBasePreferenceFragment;
 
 import java.util.ArrayList;
@@ -31,27 +32,25 @@ import co.aospa.glyph.R;
 
 public class EssentialRulesFragment extends SettingsBasePreferenceFragment {
 
-    List<Preference> screenPrefs;
+    private Context prefContext;
 
+    private CardPreference emptyMessage;
     private PreferenceScreen mScreen;
     private PreferenceCategory mCategory;
 
-    private final Runnable mRulesListener = () -> syncRules(Data.EssentialRule.getRules());
+    private static final String KEY_RULES_CATEGORY = "rules_category";
+    private static final String KEY_EMPTY_MESSAGE = "rules_empty_message";
+
+    private final Runnable mRulesListener = () -> initScreen();
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-        Context context = getPreferenceManager().getContext();
-        mScreen = getPreferenceManager().createPreferenceScreen(context);
+        prefContext = getPreferenceManager().getContext();
+        mScreen = getPreferenceManager().createPreferenceScreen(prefContext);
         setPreferenceScreen(mScreen);
 
         requireActivity().setTitle(R.string.glyph_settings_notifs_sub_essential_title);
-
-        mCategory = new PreferenceCategory(context);
-        mCategory.setKey("rules_category");
-        mCategory.setTitle(getString(R.string.glyph_settings_essential_rules_category_title));
-        mCategory.setOrderingAsAdded(false);
-        mScreen.addPreference(mCategory);
-        syncRules(Data.EssentialRule.getRules());
+        initScreen();
     }
 
     @Override
@@ -78,6 +77,41 @@ public class EssentialRulesFragment extends SettingsBasePreferenceFragment {
         }, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
     }
 
+    private void initScreen() {
+        if (!Data.EssentialRule.getRules().isEmpty()) {
+            if (mScreen.findPreference(KEY_RULES_CATEGORY) == null) {
+                if (mCategory == null) {
+                    mCategory = new PreferenceCategory(prefContext);
+                    mCategory.setKey(KEY_RULES_CATEGORY);
+                    mCategory.setTitle(getString(
+                            R.string.glyph_settings_essential_rules_category_title));
+                    mCategory.setOrderingAsAdded(false);
+                }
+                mScreen.addPreference(mCategory);
+            }
+            syncRules(Data.EssentialRule.getRules());
+
+            Preference empty = mScreen.findPreference(KEY_EMPTY_MESSAGE);
+            if (empty != null) mScreen.removePreference(empty);
+        } else {
+            if (mScreen.findPreference(KEY_EMPTY_MESSAGE) == null) {
+                if (emptyMessage == null) {
+                    emptyMessage = new CardPreference(prefContext);
+                    emptyMessage.setKey(KEY_EMPTY_MESSAGE);
+                    emptyMessage.setTitle(getString(
+                            R.string.glyph_settings_essential_rule_list_no_rules_title));
+                    emptyMessage.setSummary(getString(
+                            R.string.glyph_settings_essential_rule_list_no_rules_summary));
+                    emptyMessage.setSelectable(false);
+                }
+                mScreen.addPreference(emptyMessage);
+            }
+
+            Preference category = mScreen.findPreference(KEY_RULES_CATEGORY);
+            if (category != null) mScreen.removePreference(category);
+        }
+    }
+
     @Override
     public void onStart() {
         super.onStart();
@@ -87,7 +121,7 @@ public class EssentialRulesFragment extends SettingsBasePreferenceFragment {
     @Override
     public void onResume() {
         super.onResume();
-        syncRules(Data.EssentialRule.getRules());
+        initScreen();
     }
 
     @Override

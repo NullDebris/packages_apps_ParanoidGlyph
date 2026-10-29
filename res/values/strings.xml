@@ -227,6 +227,9 @@
 
     <string name="glyph_settings_essential_rule_editor_any_summary">Any</string>
 
+    <string name="glyph_settings_essential_rule_list_no_rules_title">No rules</string>
+    <string name="glyph_settings_essential_rule_list_no_rules_summary">Tap the + icon to add a new rule</string>
+
     <string name="glyph_settings_essential_rule_editor_save_rule_title">Save rule</string>
     <string name="glyph_settings_essential_rule_editor_delete_rule_title">Delete rule</string>
 
