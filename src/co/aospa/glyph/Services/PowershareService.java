@@ -36,6 +36,7 @@ public class PowershareService extends Service {
     private String POWERSHARE_ACTIVE = null;
     private String POWERSHARE_ENABLED = null;
 
+    private FileObserver mFileObserver;
     private PowershareActiveObserver mPowershareActiveObserver;
     private Context mContext;
 
@@ -54,10 +55,13 @@ public class PowershareService extends Service {
             Log.w(TAG, "Unable to get one or more powershare paths. device is unsupported?");
             stopSelf();
             return START_NOT_STICKY;
-        } else {
-            mFileObserver.startWatching();
-            mPowershareActiveObserver.startWatching();
         }
+
+        if (mFileObserver == null) {
+            mFileObserver = new PowershareEnabledObserver(POWERSHARE_ENABLED);
+        }
+        mFileObserver.startWatching();
+        mPowershareActiveObserver.startWatching();
         return START_STICKY;
     }
 
@@ -75,7 +79,7 @@ public class PowershareService extends Service {
     @Override
     public void onDestroy() {
         if (DEBUG) Log.d(TAG, "Destroying service");
-        mFileObserver.stopWatching();
+        if (mFileObserver != null) mFileObserver.stopWatching();
         mPowershareActiveObserver.stopWatching();
         super.onDestroy();
     }
@@ -86,79 +90,90 @@ public class PowershareService extends Service {
     }
 
     private void onPowershareEnabled() {
-        if (DEBUG) Log.e(TAG, "onPowershareEnabled");
+        if (DEBUG) Log.d(TAG, "onPowershareEnabled");
         mPowershareActiveObserver.continueWatching();
     }
 
     private void onPowershareDisabled() {
-        if (DEBUG) Log.e(TAG, "onPowershareDisabled");
+        if (DEBUG) Log.d(TAG, "onPowershareDisabled");
         mPowershareActiveObserver.pauseWatching();
     }
 
-    private final FileObserver mFileObserver = new FileObserver(POWERSHARE_ENABLED, FileObserver.MODIFY) {
+    private class PowershareEnabledObserver extends FileObserver {
+
+        PowershareEnabledObserver(String path) {
+            super(path, FileObserver.MODIFY);
+        }
+
         @Override
         public void onEvent(int event, String file) {
-            this.checkIfPowerShareIsEnabled();
+            checkIfPowerShareIsEnabled();
         }
 
         @Override
         public void startWatching() {
-            if (DEBUG) Log.e(TAG, "FileObserver: startWatching");
-            this.checkIfPowerShareIsEnabled();
+            if (DEBUG) Log.d(TAG, "FileObserver: startWatching");
+            checkIfPowerShareIsEnabled();
             super.startWatching();
         }
 
         private void checkIfPowerShareIsEnabled() {
-            if (DEBUG) Log.e(TAG, "FileObserver: checkIfPowerShareIsEnabled: "
-                    + FileUtils.readLineInt(POWERSHARE_ENABLED));
-            if (FileUtils.readLineInt(POWERSHARE_ENABLED) == 1) {
+            int enabled = FileUtils.readLineInt(POWERSHARE_ENABLED);
+            if (DEBUG) Log.d(TAG, "FileObserver: checkIfPowerShareIsEnabled: " + enabled);
+            if (enabled == 1) {
                 onPowershareEnabled();
             } else {
                 onPowershareDisabled();
             }
         }
-    };
+    }
 
     private class PowershareActiveObserver extends Thread {
 
-        private boolean lastState = false;
-        private boolean pause = true;
-        private boolean ended = false;
+        private volatile boolean lastState = false;
+        private volatile boolean pause = true;
+        private volatile boolean ended = false;
 
-        private Object mPowershareActiveObserverLock = new Object();
+        private final Object mPowershareActiveObserverLock = new Object();
 
         public void startWatching() {
-            if (DEBUG) Log.e(TAG, "PowershareActiveObserver: startWatching");
+            if (DEBUG) Log.d(TAG, "PowershareActiveObserver: startWatching");
             if (super.isAlive()) return;
             super.start();
         }
 
         public void continueWatching() {
-            if (DEBUG) Log.e(TAG, "PowershareActiveObserver: continueWatching");
-            if (!pause) return;
-            pause = false;
+            if (DEBUG) Log.d(TAG, "PowershareActiveObserver: continueWatching");
             synchronized (mPowershareActiveObserverLock) {
-                mPowershareActiveObserverLock.notify();
+                if (!pause) return;
+                pause = false;
+                mPowershareActiveObserverLock.notifyAll();
             }
         }
 
         public void pauseWatching() {
-            if (DEBUG) Log.e(TAG, "PowershareActiveObserver: pauseWatching");
-            if (pause) return;
-            lastState = false;
-            pause = true;
+            if (DEBUG) Log.d(TAG, "PowershareActiveObserver: pauseWatching");
+            synchronized (mPowershareActiveObserverLock) {
+                if (pause) return;
+                lastState = false;
+                pause = true;
+            }
         }
 
         public void stopWatching() {
-            if (DEBUG) Log.e(TAG, "PowershareActiveObserver: stopWatching");
-            if (pause) this.continueWatching();
-            ended = true;
+            if (DEBUG) Log.d(TAG, "PowershareActiveObserver: stopWatching");
+            synchronized (mPowershareActiveObserverLock) {
+                ended = true;
+                pause = false;
+                mPowershareActiveObserverLock.notifyAll();
+            }
+            interrupt();
         }
 
         private void updatePowershareState() {
-            if (DEBUG) Log.d(TAG, "updatePowershareState: "
-                    + FileUtils.readLineInt(POWERSHARE_ACTIVE));
-            if (FileUtils.readLineInt(POWERSHARE_ACTIVE) == 1) {
+            int active = FileUtils.readLineInt(POWERSHARE_ACTIVE);
+            if (DEBUG) Log.d(TAG, "updatePowershareState: " + active);
+            if (active == 1) {
                 if (lastState) return;
                 lastState = true;
                 AnimationManager.playCsv(mContext, "powershare", true);
@@ -169,16 +184,17 @@ public class PowershareService extends Service {
 
         @Override
         public void run() {
-            if (DEBUG) Log.e(TAG, "PowershareActiveObserver: run");
+            if (DEBUG) Log.d(TAG, "PowershareActiveObserver: run");
             while (!ended) {
                 synchronized (mPowershareActiveObserverLock) {
-                    if (pause) {
+                    while (pause && !ended) {
                         try {
                             if (DEBUG) Log.d(TAG, "mPowershareActiveObserverLock.wait()");
                             mPowershareActiveObserverLock.wait();
                         } catch (InterruptedException e) {}
                     }
                 }
+                if (ended) break;
                 updatePowershareState();
                 try {
                     Thread.sleep(500);
