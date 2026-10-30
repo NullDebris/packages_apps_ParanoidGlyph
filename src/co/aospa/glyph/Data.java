@@ -30,8 +30,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -52,6 +54,8 @@ public class Data {
 
     private static final String TAG = "GlyphData";
 
+    private static final CountDownLatch initialScan = new CountDownLatch(1);
+
     public record ApplicationData (
             String label,
             Drawable icon,
@@ -66,6 +70,14 @@ public class Data {
                 = new ConcurrentHashMap<>();
 
         static final AtomicBoolean updatePending = new AtomicBoolean(false);
+
+        private static void awaitScan() {
+            try {
+                initialScan.await(5, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
 
         public static synchronized void init(Context ctx) {
 
@@ -85,72 +97,79 @@ public class Data {
             ctx.getApplicationContext().registerReceiver(receiver, filter, null, backgroundHandler);
 
             backgroundHandler.post(() -> {
-                updatePending.set(true);
+                try {
+                    updatePending.set(true);
 
-                PackageManager pm = ctx.getPackageManager();
-                List<PackageInfo> allApps = pm.getInstalledPackages(PackageManager.GET_PERMISSIONS);
-                for (PackageInfo pkg : allApps) {
-                    String pkgName = pkg.packageName;
-                    Drawable icon = null;
-                    boolean canManageOwnCalls = false;
-                    boolean canUseMic = false;
-                    boolean canBindMedia = false;
-                    boolean canNotify = false;
-                    String label = pkg.applicationInfo.loadLabel(pm).toString();
+                    PackageManager pm = ctx.getPackageManager();
+                    List<PackageInfo> allApps = pm.getInstalledPackages(PackageManager.GET_PERMISSIONS);
+                    for (PackageInfo pkg : allApps) {
+                        String pkgName = pkg.packageName;
+                        Drawable icon = null;
+                        boolean canManageOwnCalls = false;
+                        boolean canUseMic = false;
+                        boolean canBindMedia = false;
+                        boolean canNotify = false;
+                        String label = pkg.applicationInfo.loadLabel(pm).toString();
 
 
-                    int pkgFlags = pkg.applicationInfo.flags;
-                    if (pkg.requestedPermissions == null) continue;
-                    if (pm.getLaunchIntentForPackage(pkg.packageName) == null) continue;
-                    if ((pkgFlags & ApplicationInfo.FLAG_INSTALLED) == 0
-                            || (pkgFlags & ApplicationInfo.FLAG_PERSISTENT) != 0) continue;
-                    for (String perm : pkg.requestedPermissions) {
-                        switch (perm) {
-                            case callPermission -> canManageOwnCalls = true;
-                            case micFgPermission, audioRecordPermission -> canUseMic = true;
-                            case mediaPermission -> canBindMedia = true;
-                            case notificationPermission -> {
-                                if (pkg.applicationInfo.targetSdkVersion >= Build.VERSION_CODES.TIRAMISU) {
-                                    canNotify = true;
+                        int pkgFlags = pkg.applicationInfo.flags;
+                        if (pkg.requestedPermissions == null) continue;
+                        if (pm.getLaunchIntentForPackage(pkg.packageName) == null) continue;
+                        if ((pkgFlags & ApplicationInfo.FLAG_INSTALLED) == 0
+                                || (pkgFlags & ApplicationInfo.FLAG_PERSISTENT) != 0) continue;
+                        for (String perm : pkg.requestedPermissions) {
+                            switch (perm) {
+                                case callPermission -> canManageOwnCalls = true;
+                                case micFgPermission, audioRecordPermission -> canUseMic = true;
+                                case mediaPermission -> canBindMedia = true;
+                                case notificationPermission -> {
+                                    if (pkg.applicationInfo.targetSdkVersion
+                                            >= Build.VERSION_CODES.TIRAMISU) {
+                                        canNotify = true;
+                                    }
                                 }
                             }
                         }
+
+                        try {
+                            icon = pm.getApplicationIcon(pkgName);
+                        } catch (PackageManager.NameNotFoundException e) {
+                            icon = pm.getDefaultActivityIcon();
+                        }
+
+                        if (pkg.applicationInfo.targetSdkVersion < Build.VERSION_CODES.TIRAMISU) {
+                            canNotify = true;
+                        }
+
+                        appDataCache.putIfAbsent(pkgName, new ApplicationData(
+                                label,
+                                icon,
+                                new CopyOnWriteArrayList<NotificationChannel>(),
+                                new CopyOnWriteArrayList<NotificationChannelGroup>(),
+                                canManageOwnCalls,
+                                canUseMic,
+                                canBindMedia,
+                                canNotify)
+                        );
                     }
 
-                    try {
-                        icon = pm.getApplicationIcon(pkgName);
-                    } catch (PackageManager.NameNotFoundException e) {
-                        icon = pm.getDefaultActivityIcon();
-                    }
-
-                    if (pkg.applicationInfo.targetSdkVersion < Build.VERSION_CODES.TIRAMISU) {
-                        canNotify = true;
-                    }
-
-                    appDataCache.putIfAbsent(pkgName, new ApplicationData(
-                            label,
-                            icon,
-                            new CopyOnWriteArrayList<NotificationChannel>(),
-                            new CopyOnWriteArrayList<NotificationChannelGroup>(),
-                            canManageOwnCalls,
-                            canUseMic,
-                            canBindMedia,
-                            canNotify)
-                    );
+                    updatePending.compareAndSet(true, false);
+                } finally {
+                    initialScan.countDown();
                 }
-
-                updatePending.compareAndSet(true, false);
             });
         }
 
 
         public static Map<String, ApplicationData> get(Context ctx) {
             if (appDataCache.isEmpty()) init(ctx);
+            awaitScan();
             return sortByLabel(appDataCache);
         }
 
         public static Map<String, ApplicationData> getMediaApps(Context ctx) {
             if (appDataCache.isEmpty()) init(ctx);
+            awaitScan();
             return sortByLabel(appDataCache.entrySet().stream()
                     .filter(e -> e.getValue().canBindMedia())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
@@ -158,6 +177,7 @@ public class Data {
 
         public static Map<String, ApplicationData> getMicApps(Context ctx) {
             if (appDataCache.isEmpty()) init(ctx);
+            awaitScan();
             return sortByLabel(appDataCache.entrySet().stream()
                     .filter(e -> e.getValue().canUseMic())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
@@ -165,6 +185,7 @@ public class Data {
 
         public static Map<String, ApplicationData> getCallApps(Context ctx) {
             if (appDataCache.isEmpty()) init(ctx);
+            awaitScan();
             return sortByLabel(appDataCache.entrySet().stream()
                     .filter(e -> e.getValue().canManageOwnCalls())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
@@ -172,6 +193,7 @@ public class Data {
 
         public static Map<String, ApplicationData> getNotificationApps(Context ctx) {
             if (appDataCache.isEmpty()) init(ctx);
+            awaitScan();
             return sortByLabel(appDataCache.entrySet().stream()
                     .filter(e -> e.getValue().canNotify())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
@@ -179,6 +201,7 @@ public class Data {
 
         public static ApplicationData getApplication(Context ctx, String pkg) {
             if (appDataCache.isEmpty()) init(ctx);
+            awaitScan();
             ApplicationData d = appDataCache.get(pkg);
             if (d == null) {
                 try {
@@ -204,7 +227,8 @@ public class Data {
                             LinkedHashMap::new));
         }
 
-        public static void fillPackageInfo(Context ctx, String pkg) throws PackageManager.NameNotFoundException {
+        public static void fillPackageInfo(Context ctx, String pkg)
+                throws PackageManager.NameNotFoundException {
             updatePending.set(true);
 
             PackageManager pm = ctx.getPackageManager();
