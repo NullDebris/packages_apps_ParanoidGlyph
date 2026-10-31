@@ -286,6 +286,25 @@ public class Data {
             updatePending.compareAndSet(true, false);
         }
 
+        public static boolean isSystemApp(Context context, String packageName) {
+            try {
+                ApplicationInfo ai = context.getPackageManager()
+                        .getApplicationInfo(packageName, 0);
+                return (ai.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
+            } catch (PackageManager.NameNotFoundException e) {
+                return false;
+            }
+        }
+
+        public static boolean isInstalled(Context context, String packageName) {
+            try {
+                context.getPackageManager().getPackageInfo(packageName, 0);
+                return true;
+            } catch (PackageManager.NameNotFoundException e) {
+                return false;
+            }
+        }
+
         public static class Notification {
 
             private static void tryToFillPkg(Context ctx, String pkg, Consumer<ApplicationData> action) {

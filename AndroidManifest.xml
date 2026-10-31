@@ -193,27 +193,58 @@
             android:label="@string/glyph_settings_title"
             android:theme="@style/Theme.SubSettingsBase.Expressive">
             <intent-filter>
-                <action android:name="com.android.settings.action.IA_SETTINGS" />
-            </intent-filter>
-            <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
+            </intent-filter>
+        </activity>
+
+        <activity-alias
+            android:name=".Settings.SettingsActivityMainEntry"
+            android:targetActivity=".Settings.SettingsActivity"
+            android:exported="true"
+            android:label="@string/glyph_settings_title"
+            android:icon="@drawable/ic_glyphs_logo">
+            <intent-filter>
+                <action android:name="com.android.settings.action.IA_SETTINGS" />
             </intent-filter>
             <meta-data
                 android:name="com.android.settings.category"
                 android:value="com.android.settings.category.ia.homepage" />
             <meta-data
                 android:name="com.android.settings.group_key"
-                android:value="top_level_personalize_category"/>
+                android:value="top_level_personalize_category" />
             <meta-data
                 android:name="com.android.settings.icon"
                 android:resource="@drawable/ic_glyphs_logo" />
             <meta-data
                 android:name="com.android.settings.summary"
                 android:value="@string/glyph_settings_summary" />
-             <meta-data
+            <meta-data
                 android:name="com.android.settings.order"
-                android:value="-256" />
-        </activity>
+                android:value="-255" />
+        </activity-alias>
+
+        <activity-alias
+            android:name=".Settings.SettingsActivitySystemEntry"
+            android:targetActivity=".Settings.SettingsActivity"
+            android:exported="true"
+            android:label="@string/glyph_settings_title"
+            android:icon="@drawable/ic_glyphs_logo">
+            <intent-filter>
+                <action android:name="com.android.settings.action.IA_SETTINGS" />
+            </intent-filter>
+            <meta-data
+                android:name="com.android.settings.category"
+                android:value="com.android.settings.category.ia.system" />
+            <meta-data
+                android:name="com.android.settings.icon"
+                android:resource="@drawable/ic_glyphs_logo" />
+            <meta-data
+                android:name="com.android.settings.summary"
+                android:value="@string/glyph_settings_summary" />
+            <meta-data
+                android:name="com.android.settings.order"
+                android:value="-255" />
+        </activity-alias>
 
         <activity
             android:name=".Settings.SubSettingsActivity"

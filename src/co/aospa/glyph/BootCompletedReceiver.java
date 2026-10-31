@@ -19,12 +19,15 @@
 package co.aospa.glyph;
 
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.util.Log;
 
 import co.aospa.glyph.Constants.Constants;
 import co.aospa.glyph.Manager.GlyphScheduleManager;
+import co.aospa.glyph.Settings.SettingsActivity;
 import co.aospa.glyph.Utils.ServiceUtils;
 
 public class BootCompletedReceiver extends BroadcastReceiver {
@@ -48,6 +51,43 @@ public class BootCompletedReceiver extends BroadcastReceiver {
         if (action != null && action.equals(Intent.ACTION_BOOT_COMPLETED)) {
             Data.ApplicationData.init(context.getApplicationContext());
             Data.EssentialRule.reloadRules();
+            setupShortcut(context.getApplicationContext());
         }
+    }
+
+    private void setupShortcut(Context ctx) {
+        String axPkg = "com.android.axion.axionparts";
+
+        if (Data.ApplicationData.isInstalled(ctx, axPkg)
+                && Data.ApplicationData.isSystemApp(ctx, axPkg)) {
+            switchMainShortcut(ctx, false);
+        } else {
+            switchMainShortcut(ctx, true);
+        }
+    }
+
+    private static void switchMainShortcut(Context context, boolean mainState) {
+        ComponentName mainComponent = new ComponentName(
+                context,
+                SettingsActivity.class.getName() + "MainEntry"
+        );
+        ComponentName systemComponent = new ComponentName(
+                context,
+                SettingsActivity.class.getName() + "SystemEntry"
+        );
+        context.getPackageManager().setComponentEnabledSetting(
+                mainComponent,
+                mainState
+                        ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                        : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                PackageManager.DONT_KILL_APP
+        );
+        context.getPackageManager().setComponentEnabledSetting(
+                systemComponent,
+                !mainState
+                        ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                        : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                PackageManager.DONT_KILL_APP
+        );
     }
 }
